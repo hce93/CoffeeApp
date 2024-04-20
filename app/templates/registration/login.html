@@ -1,0 +1,17 @@
+<form action="{% url 'login' %}" method="post" class="form">
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+        {% for error in form.non_field_errors %}
+            <p>{{error}}</p>
+        {% endfor %}
+    {% endif %}
+    <div>
+        <div>
+            {{form.username}}
+        </div>
+        <div>
+            {{form.password}}
+        </div>
+        <button>Login</button>
+    </div>
+</form>

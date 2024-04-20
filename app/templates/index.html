@@ -1,0 +1,13 @@
+<p>This is the home page</p>
+
+{% if  user.is_authenticated %}
+<form method="post" action="{% url 'logout' %}">
+  {% csrf_token %}
+  <button type="submit">Logout</button>
+</form>
+{% else %}
+<form method="post" action="{% url 'login' %}">
+    {% csrf_token %}
+    <button type="submit">Login</button>
+  </form>
+{% endif %}
