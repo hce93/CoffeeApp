@@ -1,13 +1,28 @@
-<p>This is the home page</p>
-
-{% if  user.is_authenticated %}
-<form method="post" action="{% url 'logout' %}">
-  {% csrf_token %}
-  <button type="submit">Logout</button>
-</form>
-{% else %}
-<form method="post" action="{% url 'login' %}">
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+  <p>This is the home page</p>
+  
+  {% if  user.is_authenticated %}
+  
+  <form method="post" action="{% url 'profile' slug=profile.slug%}">
     {% csrf_token %}
-    <button type="submit">Login</button>
+    <button type="submit">Profile</button>
   </form>
-{% endif %}
+  <form method="post" action="{% url 'logout' %}">
+    {% csrf_token %}
+    <button type="submit">Logout</button>
+  </form>
+  {% else %}
+  <form method="get" action="{% url 'login' %}">
+      {% csrf_token %}
+      <button type="submit">Login</button>
+  </form>
+  <form method="get" action="{% url 'register' %}">
+    {% csrf_token %}
+    <button type="submit">Register</button>
+  </form>
+  {% endif %}
+{% endblock content %}
+  
+

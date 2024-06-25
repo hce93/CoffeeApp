@@ -1,0 +1,9 @@
+
+{% for key, value in diary.items %}
+    <div class="diary-input">
+        <label for="{{key}}">{{value.2}}:</label>
+        <input type="{{value.1}}" id="{{key}}" name="{{key}}" value="{{value.0}}">
+        <span class="material-symbols-outlined" id="{{key}}_remove" onclick="removeDiaryElement('{{key}}_remove')">cancel</span>
+    </div>
+    
+{% endfor %}

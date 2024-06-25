@@ -1,0 +1,13 @@
+{% include 'single_comment_template.html' with comment=comment.comment %}
+
+{% if comment.replies %}
+<span onclick="viewComments(this)" class="material-symbols-outlined inner-comments-span">expand_more</span>
+<div class="reply" id="hidden-div" style="display:none">
+    
+
+    {% for reply in comment.replies %}
+        {% include 'comment_reply_template.html' with comment=reply %}
+    {% endfor %}
+
+</div>
+{% endif %}

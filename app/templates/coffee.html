@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% load static %}
+
+        
+{% block content %}
+    <div id="coffee">
+        {% for key, value in coffee_data.items %}
+            <p>{{key}}: {{value}}</p>
+        {% endfor %}
+        <img src="{{coffee_image}}" style="max-height:200px"/>
+        <div>
+            {% include 'like_template.html' with item=coffee_slug type="coffee" is_liked=like_data.is_liked like_count=like_data.like_count %}
+            {% if is_bookmarked %}
+                <span id="{{coffee_slug}}" class="material-symbols-outlined bookmark saved" title="bookmark">bookmark</span>
+            {% else %}
+                <span id="{{coffee_slug}}" class="material-symbols-outlined bookmark" title="bookmark">bookmark</span>
+            {% endif %}
+            {% if in_diary %}
+                <span id="{{coffee_slug}}" class="material-symbols-outlined added" title="already added to diary">docs_add_on</span>
+            {% else %}
+                <span id="{{coffee_slug}}" class="material-symbols-outlined add-diary" title="add to diary">docs_add_on</span>
+            {% endif %}
+        </div>
+    </div>
+    {% if user.is_authenticated %}
+        <span id="show-review-form" onclick="showReviewForm()">Write a Review...</span>
+        <form method="POST" id="review-form">
+            {% csrf_token %}
+            <input type="hidden" id="hidden" name="reply" value="{{coffee_slug}}">
+            <div>
+                <textarea name="content" cols="40" rows="10" placeholder="Review..." required id="id_content"></textarea>
+            </div>
+            <input type="hidden" name="rating" placeholder="Rating" required id="id_rating">
+            <div id="star-rating">
+                <span class="material-symbols-outlined star" value="1">star</span>
+                <span class="material-symbols-outlined star" value="2">star</span>
+                <span class="material-symbols-outlined star" value="3">star</span>
+                <span class="material-symbols-outlined star" value="4">star</span>
+                <span class="material-symbols-outlined star" value="5">star</span>
+            </div>
+            <button>SUBMIT</button>
+        </form>
+        <div id="review-errors"></div>
+        
+        {% if review_forms.errors %}
+            {{review_forms.errors}}
+        {% endif %}
+            
+    {% endif %}
+        
+    
+    {% for review in review_and_comment %}
+        <div class="review-container">
+            <div class="review-div">
+                <p>User: {{review.review.0.author}}</p>    
+                <p class="restrict-100-chars">{{review.review.0.content}}</p>
+                <div class="rating-holder" rating={{review.review.0.rating}} review_id={{review.review.0.id}} ></div>
+                <a href="{% url 'review' review.review.0.id %}">Review page...</a>
+                {% if user.is_authenticated %}  
+                    <div class="action-box">
+                        {% include 'like_template.html' with item=review.review.0.id type="review" is_liked=review.review.1 like_count=review.review.2.like_count %}
+
+                        <button onclick="toggleDiv(this)" class="btn">
+                            <i class="fa-regular fa-comment"></i>
+                            <span class="comment-count">{{review.review.2.comment_count}}</span>
+                        </button>
+                        {% if review.review.3 %}
+                            <span class="material-symbols-outlined delete-review" value={{review.review.0.id}}>delete</span>
+                        {% endif %}
+                    </div>
+                    <div class="reply-box" style="display:none">
+                        <form method="POST" class="comment-form">
+                            {% csrf_token %}
+                            <input type="hidden" id="hidden" name="comment" value="{{review.review.0.id}}">
+                            {{comment_form}}
+                            <button>SUBMIT</button>
+                        </form> 
+                    </div>
+                {% endif %}
+            </div>
+            {% if review.comments %}
+            <span class="outer-comments-span" onclick="showOuterComments(this)">Show comments...</span>
+                    {% for comments in review.comments %}
+                        <div class="outer-comment-div">
+                            {% include 'comment_reply_template.html' with comment=comments %}
+                        </div>
+                    {% endfor %}
+                
+            {% endif %}
+        </div>
+    {% endfor %}
+{% endblock content %}
+            
+
+    
+{% block scripts %}
+    <script>
+        var like_url = "{% url 'like_item' 1 %}".replace('1','')
+        var bookmark_url = "{% url 'bookmark_coffee' 1 %}".replace('1','')
+        var create_comment_url = "{% url 'create_comment' 1 %}".replace('1','')
+        var create_review_url = "{% url 'create_review' 1 %}".replace('1','')
+        var delete_comment_url = "{% url 'delete_comment' 1 %}".replace('1','')
+        var delete_review_url = "{% url 'delete_review' 1 %}".replace('1','')
+        var diary_url = "{% url 'add_to_diary' 1 %}".replace('1','')
+        var csrfToken = "{{ csrf_token }}";
+    </script>
+    <script src="{% static 'coffee.js' %}" id="url"></script>
+{% endblock scripts %}
+        

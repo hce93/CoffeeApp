@@ -1,0 +1,35 @@
+<div class="comment-div" value={{comment.0.id}}>
+    <p>{{comment.0.content}}</p>
+    {% if user.is_authenticated %}
+            
+        <div class="action-box">
+            {% include 'like_template.html' with item=comment.0.id type="comment" is_liked=comment.1 like_count=comment.2.like_count is_deleted=comment.0.is_deleted %}
+            {% if comment.0.is_deleted %}
+                <button class="btn comment">
+                    <i class="fa-regular fa-comment deleted"></i>
+                </button>
+            {% else %}
+                <button onclick="toggleDiv(this)" class="btn comment">
+                    <i class="fa-regular fa-comment"></i>
+                </button>
+                {% if comment.3 %}
+                    <span class="material-symbols-outlined delete" value={{comment.0.id}}>delete</span>
+                {% endif %}
+            {% endif %}
+
+        </div>
+        <div class="reply-box" style="display:none">
+            <form method="POST" class="comment-form">
+                {% if csrf_token %}
+                    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                {% else %}
+                    {% csrf_token %}
+                {% endif %}
+                <input type="hidden" id="hidden" name="reply" value="{{comment.0.id}}">
+                {{comment_form}}
+                <button>SUBMIT</button>
+            </form> 
+        </div>
+
+    {% endif %}
+</div>

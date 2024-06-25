@@ -1,6 +1,42 @@
-<body>
-    <main>
-        <form method="POST">
-            {{profile}}
-    </main>
-</body>
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+    <h2>{{username}}</h2>
+    <img class="profile-image" src="{{profile.profile_image.url}}" alt="" style="max-height:200px"/>
+    {% if not profile.bio %}
+        
+        {% if edit_access %}
+            <p>You have no bio</p>    
+        {% else %}
+            <p>The user doesn't have a bio</p>
+        {% endif %}
+            
+        
+    {% else %}
+        {{profile.bio}}
+    {% endif %}
+    
+    {% if edit_access %}
+        <a href="{% url 'edit_profile' slug=profile.slug%}"><p>Edit your bio</p></a>
+    {% endif %}
+
+    <h3>Your Likes</h3>
+    {% for like in likes_list %}
+        <div class="user-like">
+            <a href="{% url 'coffee' slug=like.slug %}">
+                <p>{{like.title}} - {{like.roaster}}</p>
+                <img src={{like.image}} style="max-height:100px">
+            </a>
+        </div>
+    {% endfor %}
+
+    <h3>Your Saves</h3>
+    {% for save in bookmarks_list %}
+        <div class="user-save">
+            <a href="{% url 'coffee' slug=save.slug %}">
+                <p>{{save.title}} - {{save.roaster}}</p>
+                <img src={{save.image}} style="max-height:100px">
+            </a>
+        </div>
+    {% endfor %}
+{% endblock content %}

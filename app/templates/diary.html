@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% load static %}
+    
+{% block head %}
+    <!-- Handsontable CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css">
+    <!-- Handsontable JS -->
+    <script src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
+{% endblock head %}
+        
+{% block content %}
+    <div id="handsontable-container"></div>
+    <p class="asterisk">*right click a cell to edit or view the diary entry seprately</p>
+{% endblock content %}
+            
+
+{% block scripts %}
+    <script>
+        var diary_url = "{% url 'generate_diary' %}"
+        var diary_entry_url = "{% url 'diary_entry' 1 %}".replace("1",'')
+        var get_diary_id = "{% url 'get_diary_id' 1 %}".replace("1",'')
+        var edit_diary_url = "{% url 'edit_diary' 1 %}".replace("1",'')
+        var csrfToken = "{{ csrf_token }}";
+    </script>
+    <script src="{% static 'diary.js' %}" id="url"></script>
+{% endblock scripts %}
+    
+
+{% comment %} need to build a dictionary to pass to the table. need to include the coffee data as well {% endcomment %}

@@ -1,0 +1,25 @@
+<div class="review-div">
+    <p>User: {{author}}</p>    
+    <p class="restrict-100-chars">{{review.content}}</p>
+    <div class="rating-holder" rating={{review.rating}} review_id={{review.id}} ></div>
+    <a href="{% url 'review' review.id %}">Review page...</a>
+    {% if user.is_authenticated %}  
+        <div class="action-box">
+            {% include 'like_template.html' with item=review.id type="review" is_liked=false like_count=0 %}
+
+            <button onclick="toggleDiv(this)" class="btn">
+                <i class="fa-regular fa-comment"></i>
+                <span class="comment-count">{{comment_count}}</span>
+            </button>
+            <span class="material-symbols-outlined delete-review" value={{review.id}}>delete</span>
+        </div>
+        <div class="reply-box" style="display:none">
+            <form method="POST" class="comment-form">
+                {% csrf_token %}
+                <input type="hidden" id="hidden" name="comment" value="{{review.id}}">
+                {{comment_form}}
+                <button>SUBMIT</button>
+            </form> 
+        </div>
+    {% endif %}
+</div>

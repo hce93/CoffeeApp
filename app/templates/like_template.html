@@ -1,0 +1,30 @@
+<div class="likes">
+    <div id="{{item}}">
+      <!--{% csrf_token %} !-->
+      {% if is_deleted %}
+        <button type="submit" class="btn">  
+      {% else %}
+        <button type="submit" class="like-button btn">
+      {% endif %}
+        <input type="hidden" name="type" value="{{type}}">
+        {% if is_deleted %}
+
+          {% if is_liked %}
+            <i class="fa-solid fa-heart deleted"></i>
+          {% else %}
+            <i class="fa-regular fa-heart deleted"></i> 
+          {% endif %}
+
+        {% else %}
+
+          {% if is_liked %}
+            <i class="fa-solid fa-heart"></i>
+          {% else %}
+            <i class="fa-regular fa-heart"></i> 
+          {% endif %}
+
+        {% endif %}
+        <span class="like-count">{{like_count}}<span>
+      </button>
+    </div>
+  </div>

@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% load static %}
+
+
+{% block content %}    
+<div id="diary-entry">
+    <div id="diary" class="half">
+        <form id="diary-form" value="{{slug}}">
+            <div id="diary-form-input-div">
+                {% if diary_html %}
+                    {{diary_html}}
+                {% else %}
+                    <p id="to_remove">You have no items yet</p>
+                {% endif %}
+                
+            </div>
+            <button>Submit</button>
+        </form>
+        <h3>Add element to diary</h3>
+        <div id="suggested-elements">
+        <h4>Suggested elements...</h4>
+        {% for key, value in suggestions.items  %}
+            <form id="{{key}}">
+                <span id={{key}} data_type={{value.0}}>{{value.2}}</span>
+                <button onclick="addDiaryElement('{{key}}')">Add</button>
+            </form>
+        {% endfor %}
+        </div>
+        <h4>Or add your own...</h4>
+        <form id="diary_element_form">
+            <label for="diary_element">New Element:</label>
+            <input type="text" id="diary_element" name="diary_element">
+            <select name="data-type" id="diary_element_type">
+                <option value="date">Date</option>
+                <option value="text">Text</option>
+                <option value="number">Number</option>
+            </select>
+            <button onclick="addDiaryElement()">Add</button>
+        </form>
+    </div>
+    <div id="coffee" class="half">
+        {{coffee}}
+    </div>
+</div>
+{% endblock content %}
+
+{% block scripts %}
+        
+<script>
+    var edit_diary_url = "{% url 'edit_diary' 1 %}".replace("1",'')
+    var check_diary_header_url = "{% url 'check_diary_header' %}"
+    var csrfToken = "{{ csrf_token }}";
+</script>
+<script src="{% static 'diary_entry.js' %}" id="url"></script>
+{% endblock scripts %}

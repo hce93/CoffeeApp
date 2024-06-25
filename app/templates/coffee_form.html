@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+    <form method="post" enctype="multipart/form-data" id="coffee-form">
+        {% csrf_token %}
+        
+        {% if form.errors %}
+        <p>{{form.errors.non_field.as_text}}</p>
+            
+        {% endif %}
+        <div id="coffee-form-input-div">
+            {{form}}
+        </div>
+        <button>Submit</button>
+    </form>
+
+    <h4>Add a new feature...</h4>
+    <form id="coffee_element_form">
+        <label for="coffee_element">New Element:</label>
+        <input type="text" id="coffee_element" name="coffee_element">
+        <select name="data-type" id="coffee_element_type">
+            <option value="text">Text</option>
+            <option value="date">Date</option>
+            <option value="number">Number</option>
+        </select>
+        <button onclick="addElement()">Add</button>
+    </form>
+{% endblock content %}
+
+
+{% block scripts %}
+    <script src="{% static 'coffee_form.js' %}" id="url"></script>
+{% endblock scripts %}
+
+    
+
+    

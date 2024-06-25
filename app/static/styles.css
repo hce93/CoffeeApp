@@ -1,0 +1,116 @@
+
+
+.material-symbols-outlined{
+    cursor: pointer;
+    padding-left: 1%;
+}
+
+.comment-div{
+    padding-left: 1%;
+}
+
+.review-container{
+    border-bottom: 1px solid black;
+    padding:15px 0;
+}
+
+.reply{
+    border-left: 1px solid rgba(0, 0, 0, 0.502);
+    margin-left: 4%;
+}
+
+#review-form{
+    display:none
+}
+
+#show-review-form{
+    cursor: pointer;
+}
+
+.action-box{
+    display:flex
+}
+
+.comment-div:hover .action-box{
+    display:flex;
+}
+
+.review-div:hover .action-box{
+    display:flex;
+} 
+
+.btn{
+    padding:0 !important;
+    min-width:50px
+}
+
+.comment-div > p, .review-div > p{
+    margin:0
+}
+
+.outer-comment-div, .review-div{
+    margin:0.5% 0;
+}
+
+.outer-comment-div{
+    display:none
+}
+
+.outer-comments-span{
+    cursor: pointer;
+}
+
+.outer-comments-span:hover, #show-review-form:hover{
+    text-decoration: underline;
+}
+.review-div{
+    padding-bottom: 1%;
+}
+
+.deleted, .added{
+    color:rgb(145, 142, 142)
+}
+
+.saved{
+  font-variation-settings:
+  'FILL' 1
+}
+
+.star{
+    font-variation-settings:
+    'FILL' 0;
+    padding:0
+    
+}
+
+#star-rating{
+    display:flex
+}
+#diary-entry{
+    display:flex
+}
+.half{
+    width:50%
+}
+
+.diary-input{
+    width:60%;
+    display:flex;
+    justify-content: space-between;
+}
+
+.restrict-100-chars{
+    width: 50ch;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.asterisk{
+    font-size: 10px;
+}
+
+.grey{
+    background:rgb(147, 147, 147) !important;
+    color:white !important;
+}
