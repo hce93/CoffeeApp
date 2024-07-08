@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% load static %}
+
+
+{% block content %}
+    <form>
+        <input type="text" value="{{search_query}}" name="search" placeholder="Search by coffee or roaster..." >
+        <button type="submit">Search</button>
+    </form>
+    <a href="{% url 'all_coffees' %}"><button type="button">Reset</button></a>
+    <div class="search_coffee_contianer">
+        {% if coffees %}
+        {% for coffee in coffees %}
+            <div class="coffee">
+                {% include 'coffee_display_template.html' with coffee=coffee%}
+            </div>
+        {% endfor %}
+        {% else %}
+            <p>Your search returned no coffees....</p>
+        {% endif %}
+        
+    </div>
+{% endblock content %}
+
+
+{% block scripts %}
+    <script>
+        var csrfToken = "{{ csrf_token }}";
+        var like_url = "{% url 'like_item' 1 %}".replace('1','')
+    </script>
+    <script src="{% static 'like-button.js' %}" id="url"></script>
+{% endblock scripts %}
+    
+    

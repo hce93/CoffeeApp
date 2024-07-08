@@ -6,23 +6,76 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css">
     <!-- Handsontable JS -->
     <script src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 {% endblock head %}
         
 {% block content %}
+    <div class="modal fade" id="editCommentModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Write Review</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form class="edit-form">
+                        {% csrf_token %}
+                        <div>
+                            <textarea name="content" cols="40" rows="10" required id="id_content"></textarea>
+                        </div>
+                        <input type="hidden" name="rating" placeholder="Rating" required id="id_rating">
+                        <div id="star-rating">
+                            <span class="new_star" value="1"></span>
+                            <span class="new_star" value="2"></span>
+                            <span class="new_star" value="3"></span>
+                            <span class="new_star" value="4"></span>
+                            <span class="new_star" value="5"></span>
+                        </div>
+                        <button>SUBMIT</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="controls-container">
+        <div class="controls">
+            <input id="search_field" type="search" placeholder="Search diary...">
+        </div>
+        <output class="console" id="output">0 results</output>
+    </div>
     <div id="handsontable-container"></div>
     <p class="asterisk">*right click a cell to edit or view the diary entry seprately</p>
+    <p>Add coffees to your diary below!</p>
+    <div>
+        <form id="search-form">
+            <input type="text" value="{{search_query}}" name="search" placeholder="Search for coffee or roaster..." >
+            <button type="submit">Search</button>
+        </form>
+        <div id="search_coffee_container"></div>
+    </div>
 {% endblock content %}
             
 
 {% block scripts %}
     <script>
-        var diary_url = "{% url 'generate_diary' %}"
-        var diary_entry_url = "{% url 'diary_entry' 1 %}".replace("1",'')
-        var get_diary_id = "{% url 'get_diary_id' 1 %}".replace("1",'')
-        var edit_diary_url = "{% url 'edit_diary' 1 %}".replace("1",'')
+        var generate_diary_url = "{% url 'generate_diary' %}"
+        var diary_entry_url = "{% url 'diary_entry' 1 %}".replace("1","")
+        var get_diary_id = "{% url 'get_diary_id' 1 %}".replace("1","")
+        var edit_diary_url = "{% url 'edit_diary' 1 %}".replace("1","")
+        var delete_diary_entry = "{% url 'delete_diary_entry' 1 %}".replace("1", "")
+        var get_coffee_from_diary = "{% url 'get_coffee_from_diary' 1 %}".replace("1","")
+        var review_from_diary = "{% url 'review_from_diary' 1 %}".replace("1","")
+        var all_coffee = "{% url 'all_coffees' %}"
+        var diary_url = "{% url 'add_to_diary' 1 %}".replace('1','')
         var csrfToken = "{{ csrf_token }}";
+        var re_run_table_bool=true;
+        var diary_page=true;
     </script>
     <script src="{% static 'diary.js' %}" id="url"></script>
+    <script src="{% static 'add-diary.js' %}" id="url"></script>
+    <script src="{% static 'star-rating.js' %}" id="url"></script>
 {% endblock scripts %}
     
 

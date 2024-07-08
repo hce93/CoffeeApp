@@ -7,6 +7,7 @@ from django.conf import settings
 import os
 import uuid
 from django.utils.translation import gettext_lazy as _
+import datetime
 
 
 class UserForm(UserCreationForm):
@@ -62,9 +63,23 @@ class CoffeeForm(forms.Form):
     description=forms.CharField(required=False)
     image = forms.ImageField(required=False)
     
-    
+    def __init__(self, *args, **kwargs):
+        super(CoffeeForm, self).__init__(*args, **kwargs)
+        
+        # add any new fields created by the user
+        original_fields = set(self.fields.keys())
+        for field in self.data:
+            if field not in original_fields:
+                if field != "csrfmiddlewaretoken":
+                    # use char field as this is being saved to a mongodb server which will save as string
+                    self.fields[field]=forms.CharField(required=False, initial=self.data[field])
+        
+        
+        
+        
     def clean(self):
         cleaned_data = super().clean()
+        print("Cleaned Data: ", self.cleaned_data)
         # verify title and producer combination hasnt occured before
         search={'title':cleaned_data['title'], 'roaster':cleaned_data['roaster']}
         if coffee_collection.find_one(search):
@@ -78,25 +93,24 @@ class CoffeeForm(forms.Form):
             return cleaned_data
     
     def clean_image(self):
-        print("cleaning the image")
         if self.cleaned_data["image"]:
             data = self.cleaned_data["image"]
             data_str = str(self.cleaned_data["image"])
             extension = os.path.splitext(data_str)[1]
             unique_filename = str(uuid.uuid4())
             # get image extension
-            
             image_path = os.path.join('upload/images/', unique_filename+extension)
-            print(type(image_path))
             with open(image_path, 'wb') as file:
                     for chunk in data.chunks():
                         file.write(chunk)
             media_path = os.path.join('/media/images/', unique_filename+extension)
             return media_path
         else:
-            return 'media/default/default-coffee.jpeg'
+            return '/media/default/default-coffee.jpeg'
     
     def save(self):
+        # add a date field before we insert to the database
+        self.cleaned_data['date_added']=datetime.datetime.now()
         coffee_collection.insert_one(self.cleaned_data)
     
 class ReviewForm(forms.ModelForm):

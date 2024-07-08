@@ -2,27 +2,73 @@
 {% load static %}
 {% block content %}
   <p>This is the home page</p>
-  
+  <p>Search</p>
+  <form action="{% url 'all_coffees' %}">
+    <input type="text" value="{{search_query}}" name="search" placeholder="Search by coffee or roaster..." >
+    <button type="submit">Search</button>
+  </form>
+  <p>Most Recent Coffees</p>
+  <div class="recent-coffee-div">
+    {% for coffee in most_recent_coffees %}
+    {% include 'coffee_display_template.html' with coffee=coffee diary=True in_diary=coffee.in_diary%}
+    {% endfor %}
+  </div>
+  <p>Top Reviewed Coffees</p>
+  <div class="recent-coffee-div">
+    {% for coffee in top_reviewed_coffee %}
+      {% include 'coffee_display_template.html' with coffee=coffee diary=True in_diary=coffee.in_diary%}
+    {% endfor %}
+  </div>
+
+  <p>Recent Reviews</p>
+  <div class="recent-review-div">
+  {% for item in recent_reviews %}
+    {% include 'review_template.html' with author=item.author review=item.review comment_count=item.comment_count home=True title=item.title roaster=item.roaster like_count=item.like_count is_liked=item.is_liked %}
+  {% endfor %}
+  </div>
+
+  <p>Popular Reviews</p>
+  <div class="popular-review-div">
+  {% for item in popular_reviews %}
+    {% include 'review_template.html' with author=item.author review=item.review comment_count=item.comment_count home=True title=item.title roaster=item.roaster like_count=item.like_count is_liked=item.is_liked%}
+  {% endfor %}
+  </div>
+
+
   {% if  user.is_authenticated %}
-  
-  <form method="post" action="{% url 'profile' slug=profile.slug%}">
-    {% csrf_token %}
-    <button type="submit">Profile</button>
-  </form>
-  <form method="post" action="{% url 'logout' %}">
-    {% csrf_token %}
-    <button type="submit">Logout</button>
-  </form>
-  {% else %}
-  <form method="get" action="{% url 'login' %}">
+    <form method="post" action="{% url 'profile' slug=profile.slug%}">
       {% csrf_token %}
-      <button type="submit">Login</button>
-  </form>
-  <form method="get" action="{% url 'register' %}">
-    {% csrf_token %}
-    <button type="submit">Register</button>
-  </form>
+      <button type="submit">Profile</button>
+    </form>
+    <form method="post" action="{% url 'logout' %}">
+      {% csrf_token %}
+      <button type="submit">Logout</button>
+    </form>
+    {% else %}
+    <form method="get" action="{% url 'login' %}">
+        {% csrf_token %}
+        <button type="submit">Login</button>
+    </form>
+    <form method="get" action="{% url 'register' %}">
+      {% csrf_token %}
+      <button type="submit">Register</button>
+    </form>
   {% endif %}
 {% endblock content %}
+
+
+{% block scripts %}
+<script>
+  var diary_url = "{% url 'add_to_diary' 1 %}".replace('1','')
+  var like_url = "{% url 'like_item' 1 %}".replace('1','')
+  var csrfToken = "{{ csrf_token }}";
+  var diary_page=false
+
+</script>
+<script src="{% static 'like-button.js' %}" id="url"></script>
+<script src="{% static 'add-diary.js' %}" id="url"></script>
+
+{% endblock scripts %}
+  
   
 

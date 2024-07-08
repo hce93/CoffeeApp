@@ -15,14 +15,16 @@ function addElement(){
         }
     
     // generate html
-    var html = generateDiaryHTML(display_name, type)
+    var html = generateElementHTML(display_name, type)
     form.appendChild(html)
 
     // remove text from input form
     document.getElementById('coffee_element').value=""
 }
 
-function generateDiaryHTML(element, type, display_name=null){
+function generateElementHTML(element, type, display_name=null){
+    var extra_fields_div=document.createElement('div')
+    extra_fields_div.setAttribute('id', 'extra_fields')
     // replace space with _ for use in attributes of tags        
     var element_no_space=element.toLowerCase().replace(/ /g, "_")
     var element_id_remove=element_no_space+"_remove"
@@ -49,16 +51,17 @@ function generateDiaryHTML(element, type, display_name=null){
     var element_id_remove=element_no_space
     remove.setAttribute('id', element_id_remove)
     
-    remove.setAttribute('onclick', 'removeDiaryElement("'+element_id_remove+'")')
+    remove.setAttribute('onclick', 'removeElement("'+element_id_remove+'")')
     remove.innerHTML="cancel"
     //append and return div
     newDiv.appendChild(newInput)
     newDiv.appendChild(remove)
-    return newDiv
+    extra_fields_div.appendChild(newDiv)
+    return extra_fields_div
     //
 }
 
-function removeDiaryElement(element){
+function removeElement(element){
     event.preventDefault()
     var parent_div
     var message

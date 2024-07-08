@@ -3,21 +3,38 @@
 var disable_editing_headers
 //cleaned version of the above, used for display
 var cleaned_disable_editing_headers;
-//send GET request to load diary data when page first visited
+//event listener to run function when dom loaded
 document.addEventListener('DOMContentLoaded',function(){
+    load_diary_request()
+})
+// function to send GET request for diary data then load handsontable
+function load_diary_request(){
+    // check if the table is already created and remove if it is
+        // this is in case we need to reload the tbale with new data
+    const table_div = document.getElementById('handsontable-container')
+    if(table_div.hasChildNodes()){
+        table_div.innerHTML=""
+    }
     $.ajax({
         type:'GET',
-        url:diary_url,
+        url:generate_diary_url,
         success: function(response){
             var initialData=response.diary
             disable_editing_headers = response.headers_to_ignore
-            console.log(response.headers)
-            console.log(response.headers_to_ignore)
             //handontable function
-            generateTable(initialData, disable_editing_headers)
+            if(initialData.length==0){
+                var element = document.createElement('p')
+                element.innerHTML="You have nothing in your diary..."
+                var container = document.getElementById('handsontable-container')
+                container.appendChild(element)
+                document.getElementsByClassName('asterisk')[0].style.display="none"
+                document.getElementsByClassName('controls-container')[0].style.display="none"
+            }else{
+                generateTable(initialData, disable_editing_headers)
+            }
         }
     })
-})
+}
 
 //function to generate handsontable, referenced in event listener above
 function generateTable(initialData, disable_editing_headers){
@@ -26,10 +43,17 @@ function generateTable(initialData, disable_editing_headers){
     cleaned_disable_editing_headers = generateColumnHeaders(disable_editing_headers, true)
     //generate column information
     var column_info = []
+    var last_update
     var temp
     key_types.forEach(item=>{
         if(item[1]=="date"){
-            temp={ data: item[0], type: item[1], dateFormat: item[2], correctFormat: item[3], readOnly:true }
+            if(item[0]=="last_update"){
+                temp={data: item[0], type: item[1], dateFormat: item[2], correctFormat: item[3], readOnly:true, columnSorting:{comparator:function(a,b){
+                    return new Date(a.replace(" : ", "T")) - new Date(b.replace(" : ", "T"))}}
+                }
+            }else{
+                temp={data: item[0], type: item[1], dateFormat: item[2], correctFormat: item[3], readOnly:true}
+            }
         }else{
             temp={ data: item[0], type: item[1], readOnly:true }
         }
@@ -42,30 +66,71 @@ function generateTable(initialData, disable_editing_headers){
             }else{
                 column_info.splice(1,0,temp)
             }
+            // save last_update in a seperate variable so we can push it to the end of the table
+        }else if(item[0]=="last_update"){
+            last_update=temp
         }else{
             column_info.push(temp)
         }
-        
     })
-
+    // add last_update to the end of the table
+    column_info.push(last_update)
     const columns = generateColumnHeaders(column_info)
     const container = document.getElementById('handsontable-container');
+
+    // listener for search function
+    const searchField = document.querySelector('#search_field');
+    document.getElementsByClassName('asterisk')[0].style.display="inline"
+    document.getElementsByClassName('controls-container')[0].style.display="inline"
+    const output = document.querySelector('#output');
+    searchField.addEventListener('keyup', (event) => {
+        var searchResultCount=0
+        var rowArray = [...Array(hot.countRows()).keys()]
+        const hide_plugin=hot.getPlugin('hiddenRows');
+        const search = hot.getPlugin('search');
+        const queryResult = search.query(event.target.value);
+        if(event.target.value==""){
+            // if no search is entered hsow all the rows
+            hide_plugin.showRows(rowArray)
+        }else{
+            // create an array of rows to keep according to search
+            to_keep = []
+            for(var item in queryResult){
+                // check if query returned the hidden id field. if it did ignore this and remove from array
+                if(queryResult[item]['col']==columns.indexOf(' id')){
+                    queryResult.splice(item,1)
+                } else {
+                    to_keep.push(queryResult[item]['row'])
+                }
+            }
+            // filter out rows to keep and hide the rest
+            hide_plugin.hideRows(rowArray.filter(x=>to_keep.indexOf(x)===-1))
+            hide_plugin.showRows(rowArray.filter(x=>to_keep.indexOf(x)>-1))
+        }
+        // update count
+        searchResultCount=queryResult.length
+        output.innerText=`${searchResultCount} results`
+        // render table
+        hot.render();
+    });
+    
+    console.log("Data: ",initialData)
     //variable to store a boolean for whether a cell is currently in edit mode
     var editStates={}
     const hot = new Handsontable(container, {
         data: initialData, // You can fill this with initial data if needed
         rowHeaders: true,
+        search: {
+            searchResultClass:'customSearchResultClass'
+        },
         contextMenu:  {
             items: {
               "row_details": {
                 name: 'View Entry',
                 callback: function(key, selection, clickEvent) {
                     var row = selection[0].start.row;
-                    var rowData = hot.getDataAtRow(row);
-                    var id = rowData[0]; // Assuming the ID is in the first column
-                    getId(id).then(function(id){
-                        window.location.href = `/diary/${id}`;
-                    })
+                    var id =hot.getDataAtRow(row)[columns.indexOf(' id')];
+                    window.location.href = `/diary/${id}`
                 }
               },
               "row_details2": {
@@ -80,7 +145,8 @@ function generateTable(initialData, disable_editing_headers){
                     var col = selection[0].start.col;
                     var cellProperties = hot.getCellMeta(row, col);
                     cellProperties.readOnly = !cellProperties.readOnly;
-                    
+                    console.log(hot.getColHeader(col))
+                    console.log(cleaned_disable_editing_headers)
                     //update cellKey so we can track what name to display in menu
                     var cellKey = `${row},${col}`;
                     if(editStates[cellKey]==null){
@@ -89,6 +155,70 @@ function generateTable(initialData, disable_editing_headers){
                         editStates[cellKey]=!editStates[cellKey]
                     }
                     hot.render();
+                },
+                hidden: function (key, options) {
+                    // don't show edit option if it is within disabled editing list
+                    var col_indx=hot.getSelectedRangeLast().to.col
+                    col_name=hot.getColHeader(col_indx)
+                    return cleaned_disable_editing_headers.includes(col_name)
+                }
+              },
+              "remove_row":{
+                name:"Delete Entry",
+                callback: function(key, selection, clickEvent){
+                    // get id from row to be deleted
+                    var row = selection[0].start.row;
+                    var id=hot.getDataAtRow(row)[columns.indexOf(' id')]
+                    // send ajax request to delete the entry from mongodb
+                    $.ajax({
+                        type:"GET",
+                        url:delete_diary_entry+id,
+                        success: function(response){
+                            if(response.success){
+                            hot.alter('remove_row', row)
+                            // if table is empty then hide it
+                            if(hot.countRows()==0){
+                                document.getElementById('handsontable-container').innerHTML=""
+                                var element = document.createElement('p')
+                                element.innerHTML="You have nothing in your diary..."
+                                document.getElementById('handsontable-container').appendChild(element)
+                                document.getElementsByClassName('asterisk')[0].style.display="none"
+                                document.getElementsByClassName('controls-container')[0].style.display="none"
+                            }
+                            }else{
+                                alert("An error occured, unable to delete entry")
+                            }
+                        }
+                    })  
+                }
+              },
+              "view_coffee":{
+                name:"View Coffee",
+                callback:function(key, selection, clickEvent){
+                    var row = selection[0].start.row;
+                    var id=hot.getDataAtRow(row)[columns.indexOf(' id')]
+                    $.ajax({
+                        type:"GET",
+                        url:get_coffee_from_diary+id,
+                        success: function(response){
+                            if(response.success){
+                                console.log("Working")
+                            window.location.href=`/coffee/${response.slug}`
+                            }else{
+                                alert("An error occured. Unable to redirect")
+                            }
+                        }
+                    })
+                }
+              },
+              "write_review":{
+                name:"Write a Review for the Coffee",
+                callback:function(key, selection, clickEvent){
+                    var row = selection[0].start.row;
+                    var id=hot.getDataAtRow(row)[columns.indexOf(' id')]
+                    $('#editCommentModal').modal('show');
+                    // add diary id to form element so we can use this to send to the django view when form is submitted
+                    $('.edit-form').attr('diary_id', id)
                 }
               }
             }
@@ -98,6 +228,12 @@ function generateTable(initialData, disable_editing_headers){
         columns: column_info,
         colHeaders: columns,
         columnSorting:true,
+        hiddenColumns: {
+            // hide the id column            
+            columns:[columns.indexOf(' id')],
+            indicators:false
+        },
+        hiddenRows:{},
         dropdownMenu: [
             'filter_by_condition',
             'filter_by_value',
@@ -113,9 +249,7 @@ function generateTable(initialData, disable_editing_headers){
         cells:function(row, col){
             if (row === 0) {
                 var header = hot.getColHeader(col)
-                console.log(cleaned_disable_editing_headers)
                 if (cleaned_disable_editing_headers.includes(header)){
-                    console.log(header)
                     var col_length = hot.getDataAtCol(col).length
                     for(var i=0;i<col_length;i++){
                         hot.setCellMeta(i, col, 'className', 'grey')
@@ -129,15 +263,16 @@ function generateTable(initialData, disable_editing_headers){
     hot.addHook('afterChange', function(changes, source){
         if(source=='edit'){
             var row = hot.getDataAtRow(changes[0][0])
-            var title = row[0]
+            // var title = row[0]
+            var id=hot.getDataAtRow(changes[0][0])[columns.indexOf(' id')];
             var key_value_array={}
             for(let i =0;i<row.length;i++){
                 if(row[i]!=null){
                     key_value_array[column_info[i]['data']]=row[i]
-                }
-                
+                }   
             }
-            saveChanges(changes[0], title)
+            saveChanges(changes[0], id)
+            console.log("ID: ", id)
         }
     })
     // render table to display the changes
@@ -145,34 +280,18 @@ function generateTable(initialData, disable_editing_headers){
 }
 
 // send changes to django view to be committed to server
-function saveChanges(changes, title){
-    getId(title).then(function(id){
-        $.ajax({
-            type:'POST',
-            url:edit_diary_url + id,
-            data:{
-                "changes":JSON.stringify(changes),
-                "edit_from_table":true,
-                "csrfmiddlewaretoken": csrfToken
-            },
-            success: function(response){
-                console.log("Successsss")
-            }
-        })
-    })
-    
-}
-
-// returns the diary id for a given coffee title for this user
-function getId(title){
-    return new Promise(function(resolve){
-        $.ajax({
-            type:'GET',
-            url:get_diary_id + title,
-            success: function(response){
-                resolve(response.id)
-            }
-        })
+function saveChanges(changes, id){
+    $.ajax({
+        type:'POST',
+        url:edit_diary_url + id,
+        data:{
+            "changes":JSON.stringify(changes),
+            "edit_from_table":true,
+            "csrfmiddlewaretoken": csrfToken
+        },
+        success: function(response){
+            console.log("Successsss")
+        }
     })
 }
 
@@ -189,8 +308,10 @@ function generateUniqueKeys(data){
 function generateDataTypeForKeys(keys){
     const data = new Set()
     keys.forEach(item=>{
-        if(item.includes("date")){
-            data.add([item,"date","YYY-MM-DD", true])
+        if(item=="last_update"){
+            data.add([item, "date", "YYYY-MM-DDTHH:mm:ss.sssZ", true])
+        }else if(item.includes("date")){
+            data.add([item,"date","YYYY-MM-DD", true])
         } else{
             data.add([item, "text"])
         }
@@ -212,7 +333,75 @@ function generateColumnHeaders(keys, disabled_keys=false){
         temp = temp.charAt(0).toUpperCase() + temp.slice(1)
         cleaned_keys.add(temp)
     })
-    console.log(cleaned_keys)
     return Array.from(cleaned_keys)
 }
+
+$(document).on('submit', '.edit-form', function(event){
+    event.preventDefault()
+    sendNewReview($(this))
+})
+function sendNewReview(button){
+    var form=button.closest('.edit-form')
+    var diary_id=form.attr('diary_id')
+    var content=form.find('#id_content').val()
+    var rating = form.find('#id_rating').val()
+    var url = review_from_diary+diary_id
+
+    //send post request to django view
+    $.ajax(({
+        type:"POST",
+        url:url,
+        data:{
+            'csrfmiddlewaretoken':csrfToken,
+            'content':content,
+            'rating':rating,
+
+        },
+        success: function(response){
+            if(response.success){
+                alert("Review submitted successfully")
+                // clear the review box
+                form.find('#id_content').val('')
+                form.find('#id_rating').val('')
+                form.find('#star-rating').removeClass('selected')
+                form.find('.new_star').css('color', '#ddd')
+
+                // close edit comment window
+                $('#editCommentModal').modal('hide')
+            }
+        }
+    }))
+}
+
+// add search functionality
+const search_form = document.getElementById('search-form')
+console.log(search_form)
+search_form.addEventListener('submit', function(){
+    event.preventDefault()
+    var search = search_form.querySelector('input').value
+    $.ajax(({
+        type:"POST",
+        url:all_coffee,
+        data:{
+            'csrfmiddlewaretoken':csrfToken,
+            'search':search,
+            'diary_search':true,
+        },
+        success: function(response){
+            if(response.success){
+                var search_div = document.getElementById('search_coffee_container')
+                search_div.innerHTML=response.html 
+            }
+        }
+    }))
+
+})
+
+// function to clear the search bar and the search results
+    // used when an item from the search is added ot the diary
+function clearSearch(){
+    document.getElementById('search-form').querySelector('input').value=""
+    document.getElementById('search_coffee_container').innerHTML=""
+}
+
 

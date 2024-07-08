@@ -3,6 +3,7 @@ from db_connection import db
 from django.utils.text import slugify
 from django.contrib.auth.models import User
 from django.core.validators import MaxValueValidator, MinValueValidator
+from datetime import datetime
 
 # Create your models here.
 
@@ -33,6 +34,13 @@ class Review(models.Model):
     # reference from mongodb
     coffee_slug = models.CharField(blank=True)
     likes = models.ManyToManyField(User, related_name="review_likes", default=None, blank=True)
+    last_update = models.DateTimeField(auto_now=True)
+    first_published=models.DateTimeField(null=True)
+    
+    def save(self, *args, **kwargs):
+        if not self.first_published:
+            self.first_published=datetime.now()
+        return super(Review, self).save(*args, **kwargs)
     
 class Comments(models.Model):
     content = models.TextField()
@@ -43,6 +51,13 @@ class Comments(models.Model):
                                related_name='replies')
     likes = models.ManyToManyField(User, related_name="comment_likes", default=None, blank=True)
     is_deleted = models.BooleanField(default=False)
+    last_update = models.DateTimeField(auto_now=True, null=True)
+    first_published=models.DateTimeField(null=True)
+    
+    def save(self, *args, **kwargs):
+        if not self.first_published:
+            self.first_published=datetime.now()
+        return super(Comments, self).save(*args, **kwargs)
     
 class Bookmarks(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)

@@ -19,11 +19,118 @@ from datetime import datetime
 from django.contrib.auth.decorators import permission_required, login_required
 
 def index(request):
-    context={}
+    # load top 5 most recent coffees
+    most_recent_coffees=list(coffee_collection.find().sort({"date_added":-1})[0:5])
+    # load likes and comment count for each coffee
+    for x in range(len(most_recent_coffees)):
+        if "likes" in most_recent_coffees[x].keys():
+            like_count = len(most_recent_coffees[x]['likes'])
+            user_liked = request.user.id in most_recent_coffees[x]['likes']
+        else:
+            like_count=0
+            user_liked=False
+        
+        most_recent_coffees[x]['likes']=like_count
+        most_recent_coffees[x]['user_liked']=user_liked
+        most_recent_coffees[x]['in_diary']=check_coffee_in_diary(request.user.id, most_recent_coffees[x]['slug'])
+    
+    # load top 5 reviewed coffees
+    # group reviews by coffee_slug and count how many reviews per slug
+    coffee_count=Review.objects.values("coffee_slug").annotate(coffee_count=Count('coffee_slug')).order_by('-coffee_count')[0:5]
+    print("Coffees: ", coffee_count)
+    top_reviewed_coffee=[]
+    for item in coffee_count:
+        coffee=coffee_collection.find_one({"slug":item['coffee_slug']})
+        if "likes" in coffee.keys():
+            like_count = len(coffee['likes'])
+            user_liked = request.user.id in coffee['likes']
+        else:
+            like_count=0
+            user_liked=False
+        coffee['likes']=like_count
+        coffee['user_liked']=user_liked
+        coffee['in_diary']=check_coffee_in_diary(request.user.id, coffee['slug'])
+    
+        
+        top_reviewed_coffee.append(coffee)
+    
+    # top 10 recent reviews
+    recent_reviews = Review.objects.all().order_by('-last_update')[0:5]
+    popular_reviews=Review.objects.annotate(like_count=Count('likes')).order_by('-like_count')[0:5] 
+    # add comment count
+    print("User: ", request.user)
+    if request.user.is_authenticated:
+        recent_reviews_updated=generate_review_info(recent_reviews, User.objects.get(username=request.user))
+        popular_reviews_updated=generate_review_info(popular_reviews, User.objects.get(username=request.user))
+    else:
+        recent_reviews_updated=generate_review_info(recent_reviews)
+        popular_reviews_updated=generate_review_info(popular_reviews)
+
+    print(recent_reviews_updated)
+    
+    
+    
+    context={
+        "recent_reviews":recent_reviews_updated,
+        "top_reviewed_coffee":top_reviewed_coffee,
+        "most_recent_coffees":most_recent_coffees,
+        "popular_reviews":popular_reviews_updated
+    }
     if request.user.is_authenticated:
         context['profile'] = Profile.objects.get(user = request.user)
         print(context['profile'])
     return render(request, 'index.html', context)
+
+# function to get review info for the home page
+def generate_review_info(reviews, user=None):
+    info=[]
+    for review in reviews:
+        comment_count = get_comment_count(review.id)
+        like_count=review.likes.count()
+        author = User.objects.get(id=review.author_id).username
+        is_liked_bool = is_liked(review, user) if user else False
+        title=coffee_collection.find_one({"slug":review.coffee_slug})['title']
+        roaster=coffee_collection.find_one({"slug":review.coffee_slug})['roaster']
+        info.append({
+            "review":review,
+            "comment_count":comment_count,
+            "author":author,
+            "title":title,
+            "roaster":roaster,
+            "like_count":like_count,
+            "is_liked": is_liked_bool
+        })
+    return info
+
+# function to display all or search for specific coffees/roasters
+def all_coffees(request):
+    if request.method=="POST" and request.POST.get('diary_search'):
+        search_query = request.POST.get('search')
+    else:
+        search_query= request.GET.get('search') if request.GET.get('search') else ""
+        
+    coffees=list(coffee_collection.find({"$or":[{"title":{"$regex":search_query, "$options":'i'}},
+                                                {"roaster":{"$regex":search_query, "$options":'i'}}]}))
+    for coffee in coffees:
+        coffee["user_liked"]=is_liked(coffee, User.objects.get(username=request.user), True) if request.user.is_authenticated else False
+        coffee['likes']=len(coffee['likes'])
+        coffee['_id']=str(coffee['_id'])
+        print(coffee)
+    
+    
+    
+    if request.method=="POST" and request.POST.get('diary_search'):
+        html=""
+        for coffee in coffees:
+            html+=render_to_string('coffee_display_template.html', context={"coffee":coffee,"diary":True, "in_diary":check_coffee_in_diary(request.user.id, coffee['slug'])}, request=request)
+        return JsonResponse({"success":True, "html":html})
+    else:
+        context={
+        "search_query":search_query,
+        "coffees":coffees
+    }
+    
+    return render(request, 'all_coffees.html', context)
 
 def create_profile(username):
     user = User.objects.get(username=username)
@@ -107,7 +214,9 @@ def logout_view(request):
 def coffee_form(request):
     if hasEditStatus(request.user):
         if request.method=="POST":
+            print("data: ", request.POST)
             form = CoffeeForm(request.POST, request.FILES)
+            print("FORM: ", form)
             if form.is_valid():
                 form.save()
             else:
@@ -123,27 +232,27 @@ def coffee_form(request):
     else:
         return HttpResponseForbidden("You do not have permission to access this page.")
     
-def test_get_replies(comment, user):
+def get_replies(comment, user):
     replies = Comments.objects.filter(parent=comment).order_by('date')
     return {
         'comment':[comment, is_liked(comment, user), {"like_count":comment.likes.count()}, user.id==comment.author_id],
-        'replies':[test_get_replies(reply, user) for reply in replies]
+        'replies':[get_replies(reply, user) for reply in replies]
     }
 
-def test_get_replies_and_comments(review, user):
+def get_replies_and_comments(review, user):
     first_comments = Comments.objects.filter(review=review, parent=None)
     comment_count = get_comment_count(review.id)
-    def test_fun(comments):
+    def get_next_level(comments):
         replies = Comments.objects.filter(parent=comments).order_by('date')
         return {
             'comment':[comments, is_liked(comments, user), {"like_count":comments.likes.count()}, user.id==comments.author_id],
-            'replies':[test_get_replies(reply, user) for reply in replies]
+            'replies':[get_replies(reply, user) for reply in replies]
         }
         
     return {
         "review":[review, is_liked(review, user), {"like_count":review.likes.count(), 
                                                    "comment_count":comment_count}, user.id==review.author_id],
-        "comments":[test_fun(comment) for comment in first_comments]
+        "comments":[get_next_level(comment) for comment in first_comments]
     }
 
 def get_average_rating(coffee_slug):
@@ -200,7 +309,8 @@ def create_review(request, slug):
                 "author":request.user.username,
                 "review":review,
                 "comment_count":0,
-                "comment_form":comment_form
+                "comment_form":comment_form,
+                "user_is_author":True
             }
             html = render_to_string('review_template.html', context, request=request)
             # print(html)
@@ -211,8 +321,33 @@ def create_review(request, slug):
             print("Errors", form.errors)
             return JsonResponse({"success":False, "errors":form.errors.as_ul()}, status=400) 
 
-def coffee(request, slug):
+def edit_review(request, id):
+    success=False
     if request.method=="POST":
+        # check if updating a review or comment
+        if request.POST.get('type')=="comment":
+            comment = Comments.objects.get(id=id)
+            if comment.author_id==request.user.id:
+                updated_content=request.POST.get('content')
+                comment.content=updated_content
+                comment.save()
+                success=True            
+        # if not a comment we are updating a review
+        elif request.POST.get('type')=="review":
+            review = Review.objects.get(id=id)
+            if review.author_id==request.user.id:
+                # update review
+                updated_content = request.POST.get('content')
+                review.content=updated_content
+                updated_rating = request.POST.get('rating')
+                review.rating = updated_rating
+                review.save()
+                success=True
+    return JsonResponse({"success":success})
+
+def coffee(request, slug):
+    # handle post requests below for comments and reviews from registered users only
+    if request.method=="POST" and request.user.is_authenticated:
         if request.POST.get('comment') or request.POST.get('reply'):
             form=CommentForm(request.POST)
             if form.is_valid():
@@ -252,13 +387,13 @@ def coffee(request, slug):
     }
     coffee_image=coffee['image']
     coffee_slug = coffee['slug']
-    reviews = Review.objects.filter(coffee_slug=slug)  
-    is_bookmarked = Bookmarks.objects.filter(user=request.user, coffee_slug=slug).exists()
+    reviews = Review.objects.filter(coffee_slug=slug).order_by('first_published')
+    is_bookmarked = Bookmarks.objects.filter(user=request.user, coffee_slug=slug).exists() if request.user.is_authenticated else False
     avg_rating = get_average_rating(slug)
-    coffee_data['average rating']=avg_rating
     
     # build dictionary of dictionaries of review and comments
-    review_and_comment = [test_get_replies_and_comments(review, request.user) for review in reviews] 
+    review_and_comment = [get_replies_and_comments(review, request.user) for review in reviews] 
+    print(len(review_and_comment))
     context = {
         "coffee_data":coffee_data,
         "like_data":like_data,
@@ -268,12 +403,15 @@ def coffee(request, slug):
         "comment_form":comment_form,
         "review_and_comment":review_and_comment,
         "is_bookmarked":is_bookmarked,
-        "in_diary":check_coffee_in_diary(request.user.id, coffee_slug)
+        "in_diary":check_coffee_in_diary(request.user.id, coffee_slug),
+        'average_rating':avg_rating,
+        "review_count":len(review_and_comment)
     }
     return render(request, 'coffee.html', context)
 
 # function to serve ajax requests to like comments/reviews/coffees
 def like_item(request, id):
+    print("Like!!")
     msg="failed"
     count=0
     user=request.user
@@ -447,6 +585,7 @@ def bookmark_coffee(request, slug):
 # function to load diary template
 @login_required
 def diary(request):
+    
     return render(request, 'diary.html')
 
 def check_date_format(date_string, date_formats):
@@ -531,12 +670,20 @@ def get_diary_data(request):
     if request.method=="GET":
         context={"success":False}
         if request.user.is_authenticated:
+            # headers to ignore are the uneditable fields in the handsontable
             user_diary, table_headers, headers_to_ignore=generate_diary(request.user.id)
+            # add last_update to be ignored as this beloings to diary but should not be editable
+            headers_to_ignore.append('last_update')
+            # convert id to a string from ObjectId so it can be sent as part of json response
+            for diary in user_diary:
+                diary['_id']=str(diary['_id'])
             context["success"]=True
             context["diary"]=user_diary
             context['headers']=table_headers
             context['headers_to_ignore']=headers_to_ignore
+        print("Diary: ", user_diary)
             
+        print("Ignore: ", headers_to_ignore)
         return JsonResponse(context)
 
 
@@ -550,12 +697,11 @@ def add_coffee_data_to_diary(diary):
         coffee.pop("_id")
         new_dict = {**entry, **coffee}
         new_diary.append(new_dict)
-    print("Headers to ignore: ", coffee_headers)
     return new_diary, list(coffee_headers)
 
 def generate_diary(user_id):
     user_diary=coffee_diary.find({"user_id":user_id})
-    ignore = ["user_id","coffeeID","coffeeSlug","_id", "image", "likes", "slug"]
+    ignore = ["user_id","coffeeID","coffeeSlug", "image", "likes", "slug", "date_added"]
     user_diary, headers_to_ignore = add_coffee_data_to_diary(user_diary)
     data=[]
     table_headers=[]
@@ -574,7 +720,7 @@ def add_to_diary(request, slug):
     if request.POST:
         user_id = request.user.id
         coffee=coffee_collection.find_one({"slug":slug})
-        coffee_data = {"user_id":user_id,"coffeeID":coffee["_id"], "coffeeSlug":coffee["slug"]}
+        coffee_data = {"user_id":user_id,"coffeeID":coffee["_id"], "coffeeSlug":coffee["slug"], "last_update":datetime.now().strftime('%Y-%m-%d : %H:%M')}
         coffee_diary.insert_one(coffee_data)
         return JsonResponse({"success":True})
     else:
@@ -590,7 +736,9 @@ def edit_diary(request, slug):
             if request.POST.get('edit_from_table'):
                 changes_str = request.POST.get('changes')
                 changes = json.loads(changes_str)
-                coffee_diary.update_one(diary_entry, {"$set":{changes[1]:changes[3]}})
+                # update last_update
+                print("Changes: ",changes)
+                coffee_diary.update_one(diary_entry, {"$set":{changes[1]:changes[3], "last_update":datetime.now().strftime('%Y-%m-%d : %H:%M')}})
                 
                 return JsonResponse({"success":True})
             # if not from table will be from edit diary entry page
@@ -645,10 +793,50 @@ def check_diary_header(request):
         print('c')
         return JsonResponse({"success":True})
     
+def delete_diary_entry(request, id):
+    success=False
+    user_id=request.user.id
+    diary_id=ObjectId(id)
+    diary_entry = coffee_diary.find_one({"_id":diary_id})
+    # check if user is the author of the diary
+    if diary_entry['user_id']==user_id:
+        # delete the diary entry
+        coffee_diary.delete_one(diary_entry)
+        success=True
+    return JsonResponse({"success":success})
+
+def get_coffee_from_diary(request, id):
+    diary_entry = coffee_diary.find_one({"_id":ObjectId(id)})
+    context={"success":False}
+    if request.user.id==diary_entry['user_id']:
+        coffee_slug=diary_entry['coffeeSlug']
+        context['slug']=coffee_slug
+        context['success']=True
+    return JsonResponse(context)
+
+def review_from_diary(request, id):
+    diary_entry = coffee_diary.find_one({"_id":ObjectId(id)})
+    success=False
+    if request.method=="POST":
+        if request.user.id==diary_entry['user_id']:
+            content=request.POST.get('content')
+            rating=request.POST.get('rating')
+            print("Content: ", content)
+            print("Rating: ", rating)
+            form = ReviewForm(request.POST)
+            if form.is_valid():
+                review=form.save(commit=False)
+                review.author=request.user
+                review.coffee_slug=diary_entry['coffeeSlug']
+                review.save()
+                success=True
+    return JsonResponse({"success":success})
+        
+    
 # view to display a single review - still contains comment, liking functionality
 def review(request, id):
     review = Review.objects.get(id=id)
-    review_and_comment=test_get_replies_and_comments(review, request.user)
+    review_and_comment=get_replies_and_comments(review, request.user)
     coffee=coffee_collection.find_one({"slug":review.coffee_slug})
     comment_form = CommentForm()
     context={
@@ -656,10 +844,10 @@ def review(request, id):
         "comment_form":comment_form,
         "coffee_image":coffee['image'],
         "coffee_title":coffee['title'],
-        "coffee_roaster":coffee['roaster']
+        "coffee_roaster":coffee['roaster'],
+        "single_review":True
     }
     return render(request, 'single_review.html', context)  
-
 
 # to do
     # need to implement star rating on the overall average rating
@@ -672,3 +860,5 @@ def review(request, id):
     # create admin functionality who can add new coffees at users requests or just allow users to do this? Maybe has to be a paying user?
     # have coffee page just show a snippet of a review? The user follow link to see full review.
         # keep comments visible on the coffee page if the user chooses to
+
+

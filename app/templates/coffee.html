@@ -1,24 +1,36 @@
 {% extends 'base.html' %}
 {% load static %}
 
+
+{% block head %}
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+{% endblock head %}
         
 {% block content %}
     <div id="coffee">
         {% for key, value in coffee_data.items %}
             <p>{{key}}: {{value}}</p>
         {% endfor %}
+        <div id="avg-rating-holder">
+            <div id="avg_rating" value="{{average_rating}}">
+                <span class="avg_star"></span>
+                <span class="avg_star"></span>
+                <span class="avg_star"></span>
+                <span class="avg_star"></span>
+                <span class="avg_star"></span>
+            </div>
+            <p>(<span id="avg-rating-count">{{review_count}}</span>)</p>
+        </div>
         <img src="{{coffee_image}}" style="max-height:200px"/>
         <div>
             {% include 'like_template.html' with item=coffee_slug type="coffee" is_liked=like_data.is_liked like_count=like_data.like_count %}
-            {% if is_bookmarked %}
+            {% if is_bookmarked and user.is_authenticated%}
                 <span id="{{coffee_slug}}" class="material-symbols-outlined bookmark saved" title="bookmark">bookmark</span>
-            {% else %}
+                <span id="{{coffee_slug}}" class="material-symbols-outlined add-diary" title="add to diary" added="{{in_diary}}">docs_add_on</span>
+            {% elif user.is_authenticated %}
                 <span id="{{coffee_slug}}" class="material-symbols-outlined bookmark" title="bookmark">bookmark</span>
-            {% endif %}
-            {% if in_diary %}
-                <span id="{{coffee_slug}}" class="material-symbols-outlined added" title="already added to diary">docs_add_on</span>
-            {% else %}
-                <span id="{{coffee_slug}}" class="material-symbols-outlined add-diary" title="add to diary">docs_add_on</span>
+                <span id="{{coffee_slug}}" class="material-symbols-outlined add-diary" title="add to diary" added="{{in_diary}}">docs_add_on</span>
             {% endif %}
         </div>
     </div>
@@ -32,11 +44,16 @@
             </div>
             <input type="hidden" name="rating" placeholder="Rating" required id="id_rating">
             <div id="star-rating">
-                <span class="material-symbols-outlined star" value="1">star</span>
+                {% comment %} <span class="material-symbols-outlined star" value="1">star</span>
                 <span class="material-symbols-outlined star" value="2">star</span>
                 <span class="material-symbols-outlined star" value="3">star</span>
                 <span class="material-symbols-outlined star" value="4">star</span>
-                <span class="material-symbols-outlined star" value="5">star</span>
+                <span class="material-symbols-outlined star" value="5">star</span> {% endcomment %}
+                <span class="new_star" value="1"></span>
+                <span class="new_star" value="2"></span>
+                <span class="new_star" value="3"></span>
+                <span class="new_star" value="4"></span>
+                <span class="new_star" value="5"></span>
             </div>
             <button>SUBMIT</button>
         </form>
@@ -52,22 +69,28 @@
     {% for review in review_and_comment %}
         <div class="review-container">
             <div class="review-div">
-                <p>User: {{review.review.0.author}}</p>    
-                <p class="restrict-100-chars">{{review.review.0.content}}</p>
-                <div class="rating-holder" rating={{review.review.0.rating}} review_id={{review.review.0.id}} ></div>
-                <a href="{% url 'review' review.review.0.id %}">Review page...</a>
-                {% if user.is_authenticated %}  
-                    <div class="action-box">
-                        {% include 'like_template.html' with item=review.review.0.id type="review" is_liked=review.review.1 like_count=review.review.2.like_count %}
-
+                <p class="review-author">User: {{review.review.0.author}}</p>    
+                <p class="restrict-100-chars content">{{review.review.0.content}}</p>
+                <div class="rating-holder main-ratings" rating={{review.review.0.rating}} review_id={{review.review.0.id}} ></div>
+                <div class="action-box">
+                    {% include 'like_template.html' with item=review.review.0.id type="review" is_liked=review.review.1 like_count=review.review.2.like_count %}
+                    {% comment %} need to figure out here where to restrict none authorised users in the below 18 lines {% endcomment %}
+                    {% if user.is_authenticated %}  
                         <button onclick="toggleDiv(this)" class="btn">
+                    {% else %}
+                        <button class="btn">
+                    {% endif %}
                             <i class="fa-regular fa-comment"></i>
                             <span class="comment-count">{{review.review.2.comment_count}}</span>
                         </button>
+                        {% comment %} check if user is the author {% endcomment %}
                         {% if review.review.3 %}
                             <span class="material-symbols-outlined delete-review" value={{review.review.0.id}}>delete</span>
+                            <span class="material-symbols-outlined edit-review-comment" value={{review.review.0.id}} type="review">edit</span>
+                            {% include 'edit_review_template.html' with content=review.review.0.content rating=review.review.0.rating id=review.review.0.id hidden=False record_type="review" %}
                         {% endif %}
                     </div>
+                    <a href="{% url 'review' review.review.0.id %}">Review page...</a>
                     <div class="reply-box" style="display:none">
                         <form method="POST" class="comment-form">
                             {% csrf_token %}
@@ -76,7 +99,8 @@
                             <button>SUBMIT</button>
                         </form> 
                     </div>
-                {% endif %}
+                    {% comment %} ends here {% endcomment %}
+                
             </div>
             {% if review.comments %}
             <span class="outer-comments-span" onclick="showOuterComments(this)">Show comments...</span>
@@ -94,6 +118,7 @@
 
     
 {% block scripts %}
+    {% comment %}  create variables for urls to be used in js files {% endcomment %}
     <script>
         var like_url = "{% url 'like_item' 1 %}".replace('1','')
         var bookmark_url = "{% url 'bookmark_coffee' 1 %}".replace('1','')
@@ -102,8 +127,21 @@
         var delete_comment_url = "{% url 'delete_comment' 1 %}".replace('1','')
         var delete_review_url = "{% url 'delete_review' 1 %}".replace('1','')
         var diary_url = "{% url 'add_to_diary' 1 %}".replace('1','')
+        var edit_review="{% url 'edit_review' 1 %}".replace('1','')
         var csrfToken = "{{ csrf_token }}";
+        var diary_page=false
     </script>
-    <script src="{% static 'coffee.js' %}" id="url"></script>
+    {% comment %} add relevant js files {% endcomment %}
+    <script src="{% static 'comments.js' %}" id="url"></script>
+    <script src="{% static 'star-rating.js' %}" id="url"></script>
+    <script src="{% static 'like-button.js' %}" id="url"></script>
+    <script src="{% static 'edit-forms.js' %}" id="url"></script>
+    <script src="{% static 'reviews.js' %}" id="url"></script>
+    <script src="{% static 'bookmark.js' %}" id="url"></script>
+    <script src="{% static 'add-diary.js' %}" id="url"></script>
+    <script>
+        //script to handle adding a coffee to diary
+
+    </script>
 {% endblock scripts %}
         

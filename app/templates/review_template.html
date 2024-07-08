@@ -1,25 +1,53 @@
 <div class="review-div">
-    <p>User: {{author}}</p>    
-    <p class="restrict-100-chars">{{review.content}}</p>
-    <div class="rating-holder" rating={{review.rating}} review_id={{review.id}} ></div>
-    <a href="{% url 'review' review.id %}">Review page...</a>
-    {% if user.is_authenticated %}  
+    {% if home %}
+        <a href="{% url 'review' review.id %}">{{title}} - {{roaster}}</a>
+    {% endif %}
+    
+    <p class="review-author">User: {{author}}</p>    
+    <p class="restrict-100-chars content">{{review.content}}</p>
+    <div class="rating-holder main-ratings" rating={{review.rating}} review_id={{review.id}} ></div>
         <div class="action-box">
-            {% include 'like_template.html' with item=review.id type="review" is_liked=false like_count=0 %}
-
-            <button onclick="toggleDiv(this)" class="btn">
+            
+            {% if home %}
+                {% include 'like_template.html' with item=review.id type="review" is_liked=is_liked like_count=like_count %}
                 <i class="fa-regular fa-comment"></i>
                 <span class="comment-count">{{comment_count}}</span>
-            </button>
-            <span class="material-symbols-outlined delete-review" value={{review.id}}>delete</span>
+            {% else %}
+                
+                {% if review_page %}
+                    {% include 'like_template.html' with item=review.id type="review" is_liked=is_liked like_count=like_count %}
+                {% else %}
+                    {% include 'like_template.html' with item=review.id type="review" is_liked=false like_count=0 %}
+                {% endif %}
+                <button onclick="toggleDiv(this)" class="btn">
+                    <i class="fa-regular fa-comment"></i>
+                    <span class="comment-count">{{comment_count}}</span>
+                </button>
+                {% comment %} add in verification below to check user is the author {% endcomment %}
+                {% if user_is_author %}
+                    <span class="material-symbols-outlined delete-review" value={{review.id}} single_review={{single_review}}>delete</span>
+                    <span class="material-symbols-outlined edit-review-comment" value={{review.review.0.id}} type="review">edit</span>
+                    {% include 'edit_review_template.html' with content=review.content rating=review.rating id=review.id hidden=False record_type="review" %}
+                {% endif %}
+                
+            {% endif %}
+            
         </div>
-        <div class="reply-box" style="display:none">
-            <form method="POST" class="comment-form">
-                {% csrf_token %}
-                <input type="hidden" id="hidden" name="comment" value="{{review.id}}">
-                {{comment_form}}
-                <button>SUBMIT</button>
-            </form> 
-        </div>
+        {% if not home %}
+        {% if not review_page %}
+            <a href="{% url 'review' review.id %}">Review page...</a>
+        {% endif %}
+        
     {% endif %}
+        {% if comment_form %}
+            <div class="reply-box" style="display:none">
+                <form method="POST" class="comment-form">
+                    {% csrf_token %}
+                    <input type="hidden" id="hidden" name="comment" value="{{review.id}}">
+                    {{comment_form}}
+                    <button>SUBMIT</button>
+                </form> 
+            </div>
+        {% endif %}
+    
 </div>

@@ -1,6 +1,6 @@
 <div class="comment-div" value={{comment.0.id}}>
-    <p>{{comment.0.content}}</p>
-    {% if user.is_authenticated %}
+    <p class="content">{{comment.0.content}}</p>
+    
             
         <div class="action-box">
             {% include 'like_template.html' with item=comment.0.id type="comment" is_liked=comment.1 like_count=comment.2.like_count is_deleted=comment.0.is_deleted %}
@@ -9,15 +9,22 @@
                     <i class="fa-regular fa-comment deleted"></i>
                 </button>
             {% else %}
+            {% if user.is_authenticated %}
                 <button onclick="toggleDiv(this)" class="btn comment">
+            {% else %}
+                <button class="btn comment">
+            {% endif %}
                     <i class="fa-regular fa-comment"></i>
                 </button>
                 {% if comment.3 %}
                     <span class="material-symbols-outlined delete" value={{comment.0.id}}>delete</span>
+                    <span class="material-symbols-outlined edit-review-comment" value={{comment.0.id}} type="comment">edit</span>
+                    {% include 'edit_review_template.html' with content=comment.0.content id=comment.0.id comment=True hidden=False record_type="comment"%}
                 {% endif %}
             {% endif %}
 
         </div>
+        {% if user.is_authenticated %}
         <div class="reply-box" style="display:none">
             <form method="POST" class="comment-form">
                 {% if csrf_token %}

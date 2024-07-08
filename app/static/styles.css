@@ -114,3 +114,52 @@
     background:rgb(147, 147, 147) !important;
     color:white !important;
 }
+
+.recent-coffee-div, .recent-review-div, .popularch-review-div{
+    width:100vw;
+    display:flex;
+    justify-content: space-around;
+    overflow: scroll;
+}
+
+.search_coffee_contianer{
+    display: flex;
+    flex-wrap: wrap;   
+}
+
+.customSearchResultClass{
+    font-weight: bold;
+    color: blueviolet !important;
+}
+#avg_rating{
+    display:flex;
+    /* width:100% */
+}
+
+.avg_star::before, .new_star::before {
+    display:flex;
+    content: '\f005';
+    font-family: 'Font Awesome 6 Free';
+    overflow:hidden;
+}
+.avg_star, .new_star{
+    color: #ddd;
+    font-weight: 900;
+}
+
+.partial::before{
+    background: linear-gradient(90deg, black var(--percent), #ddd var(--percent), #ddd 100%);
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+/* .avg_star::before {
+    width: var(--percent, 0);
+} */
+
+#avg-rating-holder{
+    display:flex
+}
+
+.rating-holder{
+    display:flex
+}

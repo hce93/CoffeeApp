@@ -1,0 +1,12 @@
+<div>
+    <a class="coffee-link" href='{% url "coffee" coffee.slug %}'>
+        <p>{{coffee.title}} - {{coffee.roaster}}</p>
+        <img src="{{coffee.image}}" style="height:100px">
+    </a>
+    {% include 'like_template.html' with is_liked=false like_count=coffee.likes item=coffee.slug is_liked=coffee.user_liked type="coffee" %}
+    
+    {% if user.is_authenticated and diary %}
+        <span id="{{coffee.slug}}" class="material-symbols-outlined add-diary" title="add to diary" added="{{in_diary}}">docs_add_on</span>
+    {% endif %}
+        
+</div>

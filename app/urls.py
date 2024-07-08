@@ -23,4 +23,9 @@ urlpatterns = [
     path('review/<int:id>', views.review, name='review'),
     path('get_diary_id/<slug:title>', views.get_diary_id, name="get_diary_id"),
     path('check_diary_header', views.check_diary_header, name="check_diary_header"),
+    path('all_coffees', views.all_coffees, name="all_coffees"),
+    path('edit_review/<int:id>', views.edit_review, name="edit_review"),
+    path('delete_diary_entry/<slug:id>', views.delete_diary_entry, name="delete_diary_entry"),
+    path('get_coffee_from_diary/<slug:id>', views.get_coffee_from_diary, name="get_coffee_from_diary"),
+    path('review_from_diary/<slug:id>', views.review_from_diary, name='review_from_diary'),
 ]
