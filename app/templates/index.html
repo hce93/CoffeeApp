@@ -10,13 +10,19 @@
   <p>Most Recent Coffees</p>
   <div class="recent-coffee-div">
     {% for coffee in most_recent_coffees %}
-    {% include 'coffee_display_template.html' with coffee=coffee diary=True in_diary=coffee.in_diary%}
+      {% include 'coffee_display_template.html' with coffee=coffee diary=True in_diary=coffee.in_diary%}
+    {% endfor %}
+  </div>
+  <p>Top Rated Coffees</p>
+  <div class="recent-coffee-div">
+    {% for coffee in top_rated_coffees %}
+      {% include 'coffee_display_template.html' with coffee=coffee diary=True in_diary=coffee.in_diary%}
     {% endfor %}
   </div>
   <p>Top Reviewed Coffees</p>
   <div class="recent-coffee-div">
     {% for coffee in top_reviewed_coffee %}
-      {% include 'coffee_display_template.html' with coffee=coffee diary=True in_diary=coffee.in_diary%}
+      {% include 'coffee_display_template.html' with coffee=coffee diary=True in_diary=coffee.in_diary %}
     {% endfor %}
   </div>
 
@@ -61,12 +67,14 @@
 <script>
   var diary_url = "{% url 'add_to_diary' 1 %}".replace('1','')
   var like_url = "{% url 'like_item' 1 %}".replace('1','')
+  var bookmark_url = "{% url 'bookmark_coffee' 1 %}".replace('1','')
   var csrfToken = "{{ csrf_token }}";
   var diary_page=false
-
 </script>
 <script src="{% static 'like-button.js' %}" id="url"></script>
+<script src="{% static 'star-rating.js' %}" id="url"></script>
 <script src="{% static 'add-diary.js' %}" id="url"></script>
+<script src="{% static 'bookmark.js' %}" id="url"></script>
 
 {% endblock scripts %}
   

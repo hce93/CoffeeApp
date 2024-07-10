@@ -115,7 +115,7 @@
     color:white !important;
 }
 
-.recent-coffee-div, .recent-review-div, .popularch-review-div{
+.recent-coffee-div, .recent-review-div, .popular-review-div{
     width:100vw;
     display:flex;
     justify-content: space-around;
@@ -131,7 +131,7 @@
     font-weight: bold;
     color: blueviolet !important;
 }
-#avg_rating{
+#avg_rating, .avg_ratings{
     display:flex;
     /* width:100% */
 }

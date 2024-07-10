@@ -14,7 +14,7 @@
     </div>
     <div class="review-container">
 
-        {% include 'review_template.html' with author=review.review.0.author review=review.review.0 comment_count=review.review.2.comment_count like_count=review.review.2.like_count is_liked=review.review.1 comment_form=comment_form user_is_author=review.review.3 review_page=True %}
+        {% include 'review_template.html' with author=review.review.0.author review=review.review.0 comment_count=review.review.2.comment_count like_count=review.review.2.like_count is_liked=review.review.1 comment_form=comment_form user_is_author=review.review.3 review_page=True single_review=True%}
 
         {% if review.comments %}
         <span class="outer-comments-span" id="review-comments" onclick="showOuterComments(this)">Show comments...</span>
@@ -45,6 +45,7 @@
     <script src="{% static 'star-rating.js' %}" id="url"></script>
     <script src="{% static 'like-button.js' %}" id="url"></script>
     <script src="{% static 'edit-forms.js' %}" id="url"></script>
+    <script src="{% static 'reviews.js' %}" id="url"></script>
     <script>
         //below opens the first layer of comments when the page is loaded
         var span = document.getElementById('review-comments')

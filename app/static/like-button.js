@@ -24,6 +24,28 @@ $(document).ready(function(){
                     count=$button.find(".like-count")
                     count.html(response.count)
                 }
+                // check if other likes for this coffee on the same page
+                var like_buttons = Array.from($('.like-button'))
+                if(like_buttons.length>1){
+                    for(var button in like_buttons){
+                        if(!$(like_buttons[button]).is($button)){
+                            if($(like_buttons[button]).closest('div').is('#'+id)){
+                                console.log("Original Button: ", $button)
+                                console.log("Next Button: ", $(like_buttons[button]))
+                                image = $(like_buttons[button]).find('i')
+                                if(image.hasClass("fa-solid")){
+                                    image.removeClass('fa-solid').addClass('fa-regular');
+                                } else {
+                                    image.removeClass('fa-regular').addClass('fa-solid');
+                                }
+                                count=$(like_buttons[button]).find(".like-count")
+                                count.html(response.count)
+                            }
+                        }
+                        
+                    }
+                }
+
             }
         })
     })

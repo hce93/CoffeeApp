@@ -2,7 +2,8 @@
 document.addEventListener('DOMContentLoaded',function(){
     updateStars()
     // if we're on a page with average ratings then run the below
-    if(document.getElementById('avg_rating')!=null){
+    if(document.getElementById('avg_rating')!=null || document.getElementsByClassName('avg_ratings').length>0){
+        console.log("found avgerage rating")
         setAverageRating()
     }
 })
@@ -23,6 +24,8 @@ function updateStars(){
             }
             // generate html if not part of edit window
         }else{
+            console.log("adding stars")
+            console.log(rating_holders[i])
             html=generateStars(rating_holders[i].getAttribute('rating'))  
             rating_holders[i].innerHTML=html  
         }
@@ -41,25 +44,36 @@ function getAverageRating(){
 }
 
 function setAverageRating(){
-    console.log("average rating: ", getAverageRating())
-    const star_div = document.getElementById("avg_rating")
-    const stars = star_div.getElementsByClassName('avg_star')
-    const rating = star_div.getAttribute('value')
-    const floor = Math.floor(rating)
-    for(var x=0; x<stars.length; x++){
-        if(x<floor){
-            stars[x].style.setProperty('--percent', `100%`)
-            stars[x].style.color="black"
-        }else{
-            stars[x].style.setProperty('--percent', `0%`)
-            stars[x].style.color="#ddd"
+    var rating_holders = document.getElementsByClassName("avg_rating")==null
+    if(document.getElementsByClassName('avg_ratings').length>0){
+        rating_holders = Array.from(document.getElementsByClassName("avg_ratings"))
+    }else{
+        rating_holders = [document.getElementById("avg_rating")]
+    }
+    for(var x in rating_holders){
+        console.log("Checking number: ", x)
+        const stars = rating_holders[x].getElementsByClassName('avg_star')
+        const rating = rating_holders[x].getAttribute('value')
+        const floor = Math.floor(rating)
+        for(var x=0; x<stars.length; x++){
+            if(x<floor){
+                stars[x].style.setProperty('--percent', `100%`)
+                stars[x].style.color="black"
+            }else{
+                stars[x].style.setProperty('--percent', `0%`)
+                stars[x].style.color="#ddd"
+            }
+        }
+        // check if there is a fraction of a star to fill, and reviews (and therefore ratings) exist for this coffee
+        if(rating %1!=0 &  rating!="NaN" ){
+            console.log(stars)
+            stars[floor].classList.add('partial')
+            stars[floor].style.setProperty('--percent', `${(rating%1)*100}%`)
+            stars[floor].style.color="black"
         }
     }
-    if(rating %1!=0){
-        stars[floor].classList.add('partial')
-        stars[floor].style.setProperty('--percent', `${(rating%1)*100}%`)
-        stars[floor].style.color="black"
-    }
+    // const star_div = document.getElementById("avg_rating")
+
 }
 
 // function to generate html for review ratings

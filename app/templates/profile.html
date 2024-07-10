@@ -21,22 +21,38 @@
     {% endif %}
 
     <h3>Your Likes</h3>
-    {% for like in likes_list %}
-        <div class="user-like">
-            <a href="{% url 'coffee' slug=like.slug %}">
-                <p>{{like.title}} - {{like.roaster}}</p>
-                <img src={{like.image}} style="max-height:100px">
-            </a>
-        </div>
-    {% endfor %}
+    <div class="recent-coffee-div">
+        {% for like in likes_list %}
+            {% include 'coffee_display_template.html' with coffee=like diary=True in_diary=like.in_diary%}
+        {% endfor %}
+    </div>
 
     <h3>Your Saves</h3>
-    {% for save in bookmarks_list %}
-        <div class="user-save">
-            <a href="{% url 'coffee' slug=save.slug %}">
-                <p>{{save.title}} - {{save.roaster}}</p>
-                <img src={{save.image}} style="max-height:100px">
-            </a>
-        </div>
+    <div class="recent-coffee-div">
+        {% for bookmark in bookmark_coffees %}
+            {% include 'coffee_display_template.html' with coffee=bookmark diary=True in_diary=bookmark.in_diary%} 
+        {% endfor %}
+    </div>
+
+    <p>Your Reviews</p>
+    <div class="popular-review-div">
+    {% for item in user_reviews %}
+        {% include 'review_template.html' with author=item.author review=item.review comment_count=item.comment_count home=True title=item.title roaster=item.roaster like_count=item.like_count is_liked=item.is_liked%}
     {% endfor %}
+    </div>
 {% endblock content %}
+
+{% block scripts %}
+    <script>
+        var diary_url = "{% url 'add_to_diary' 1 %}".replace('1','')
+        var like_url = "{% url 'like_item' 1 %}".replace('1','')
+        var bookmark_url = "{% url 'bookmark_coffee' 1 %}".replace('1','')
+        var csrfToken = "{{ csrf_token }}";
+        var diary_page=false
+    </script>
+    <script src="{% static 'like-button.js' %}" id="url"></script>
+    <script src="{% static 'star-rating.js' %}" id="url"></script>
+    <script src="{% static 'add-diary.js' %}" id="url"></script>
+    <script src="{% static 'bookmark.js' %}" id="url"></script>
+
+{% endblock scripts %}

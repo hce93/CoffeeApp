@@ -17,48 +17,37 @@ from bson.objectid import ObjectId
 import json
 from datetime import datetime
 from django.contrib.auth.decorators import permission_required, login_required
+from django.core.paginator import Paginator, EmptyPage
 
 def index(request):
+    # top 5 highest rated coffees
+    all_coffees = list(coffee_collection.find())
+    for x in range(len(all_coffees)):
+        all_coffees[x]=add_details_to_coffee(all_coffees[x], request.user)
+
+    def sort_function(element):
+        return float(element['avg_rating'])
+    top_rated_coffees=sorted(all_coffees, key=sort_function, reverse=True)[0:5]      
+    
     # load top 5 most recent coffees
     most_recent_coffees=list(coffee_collection.find().sort({"date_added":-1})[0:5])
     # load likes and comment count for each coffee
     for x in range(len(most_recent_coffees)):
-        if "likes" in most_recent_coffees[x].keys():
-            like_count = len(most_recent_coffees[x]['likes'])
-            user_liked = request.user.id in most_recent_coffees[x]['likes']
-        else:
-            like_count=0
-            user_liked=False
-        
-        most_recent_coffees[x]['likes']=like_count
-        most_recent_coffees[x]['user_liked']=user_liked
-        most_recent_coffees[x]['in_diary']=check_coffee_in_diary(request.user.id, most_recent_coffees[x]['slug'])
+        most_recent_coffees[x] = add_details_to_coffee(most_recent_coffees[x], request.user)
     
     # load top 5 reviewed coffees
     # group reviews by coffee_slug and count how many reviews per slug
-    coffee_count=Review.objects.values("coffee_slug").annotate(coffee_count=Count('coffee_slug')).order_by('-coffee_count')[0:5]
-    print("Coffees: ", coffee_count)
+    coffee_review_count=Review.objects.values("coffee_slug").annotate(coffee_count=Count('coffee_slug')).order_by('-coffee_count')[0:5]
     top_reviewed_coffee=[]
-    for item in coffee_count:
+    for item in coffee_review_count:
         coffee=coffee_collection.find_one({"slug":item['coffee_slug']})
-        if "likes" in coffee.keys():
-            like_count = len(coffee['likes'])
-            user_liked = request.user.id in coffee['likes']
-        else:
-            like_count=0
-            user_liked=False
-        coffee['likes']=like_count
-        coffee['user_liked']=user_liked
-        coffee['in_diary']=check_coffee_in_diary(request.user.id, coffee['slug'])
+        coffee_with_details=add_details_to_coffee(coffee, request.user)
+        top_reviewed_coffee.append(coffee_with_details)
     
-        
-        top_reviewed_coffee.append(coffee)
-    
-    # top 10 recent reviews
+    # top 5 recent reviews
     recent_reviews = Review.objects.all().order_by('-last_update')[0:5]
     popular_reviews=Review.objects.annotate(like_count=Count('likes')).order_by('-like_count')[0:5] 
     # add comment count
-    print("User: ", request.user)
     if request.user.is_authenticated:
         recent_reviews_updated=generate_review_info(recent_reviews, User.objects.get(username=request.user))
         popular_reviews_updated=generate_review_info(popular_reviews, User.objects.get(username=request.user))
@@ -66,20 +55,35 @@ def index(request):
         recent_reviews_updated=generate_review_info(recent_reviews)
         popular_reviews_updated=generate_review_info(popular_reviews)
 
-    print(recent_reviews_updated)
-    
-    
-    
     context={
+        "top_rated_coffees":top_rated_coffees,
         "recent_reviews":recent_reviews_updated,
         "top_reviewed_coffee":top_reviewed_coffee,
         "most_recent_coffees":most_recent_coffees,
-        "popular_reviews":popular_reviews_updated
+        "popular_reviews":popular_reviews_updated,
     }
     if request.user.is_authenticated:
         context['profile'] = Profile.objects.get(user = request.user)
-        print(context['profile'])
     return render(request, 'index.html', context)
+
+# function to generate coffee info for the summary pages, such as the home page
+def add_details_to_coffee(coffee, user):
+    # update like count if exists otherwise default to 0
+    if "likes" in coffee.keys():
+        like_count = len(coffee['likes'])
+        user_liked = user.id in coffee['likes']
+    else:
+        like_count=0
+        user_liked=False
+    
+    coffee['likes']=like_count
+    coffee['avg_rating'], coffee['count_rating']=get_average_rating(coffee['slug'])
+    if user.is_authenticated:
+        coffee['user_liked']=user_liked
+        coffee['in_diary']=check_coffee_in_diary(user.id, coffee['slug'])
+        coffee["is_bookmarked"]=Bookmarks.objects.filter(user=user, coffee_slug=coffee['slug']).exists()
+        
+    return coffee
 
 # function to get review info for the home page
 def generate_review_info(reviews, user=None):
@@ -111,14 +115,16 @@ def all_coffees(request):
         
     coffees=list(coffee_collection.find({"$or":[{"title":{"$regex":search_query, "$options":'i'}},
                                                 {"roaster":{"$regex":search_query, "$options":'i'}}]}))
-    for coffee in coffees:
-        coffee["user_liked"]=is_liked(coffee, User.objects.get(username=request.user), True) if request.user.is_authenticated else False
-        coffee['likes']=len(coffee['likes'])
-        coffee['_id']=str(coffee['_id'])
-        print(coffee)
+    for x in range(len(coffees)):
+        coffees[x]=add_details_to_coffee(coffees[x], request.user)
     
-    
-    
+    paginator=Paginator(coffees, per_page=5)
+    page = request.GET.get('page', default=1)
+    try:
+        items = paginator.get_page(number=page)
+    except EmptyPage:
+        items=[]
+        
     if request.method=="POST" and request.POST.get('diary_search'):
         html=""
         for coffee in coffees:
@@ -127,7 +133,7 @@ def all_coffees(request):
     else:
         context={
         "search_query":search_query,
-        "coffees":coffees
+        "coffees":items
     }
     
     return render(request, 'all_coffees.html', context)
@@ -165,22 +171,27 @@ def user_profile(request, slug):
         username = User.objects.get(profile = user_profile).username
         edit_access = True if user_profile.user_id==request.user.id else False
         
-        user_likes = coffee_collection.find({"likes":request.user.id})
-        likes_list = [{key:like[key] for key in like.keys() if key in ['title','roaster','image','slug']} for like in user_likes]
+        user_likes = list(coffee_collection.find({"likes":request.user.id}))
+        # likes_list = [{key:like[key] for key in like.keys() if key in ['title','roaster','image','slug']} for like in user_likes]
+        for x in range(len(user_likes)):
+            user_likes[x]=add_details_to_coffee(user_likes[x], request.user)
         
         bookmarks_slugs = [bookmark.coffee_slug for bookmark in Bookmarks.objects.filter(user=request.user)]
-        bookmark_coffees = [coffee_collection.find({"slug":slug}) for slug in bookmarks_slugs]
-        bookmarks_list = []
-        for coffee in bookmark_coffees:
-            for item in coffee:
-                bookmarks_list.append({key:item[key] for key in item.keys() if key in ['title','roaster','image','slug']})
+        bookmark_coffees = list(coffee_collection.find({"slug":{'$in':bookmarks_slugs}}))
+        
+        for x in range(len(bookmark_coffees)):
+            bookmark_coffees[x]=add_details_to_coffee(bookmark_coffees[x], request.user)
+        
+        user_reviews = Review.objects.filter(author_id=request.user.id)
+        user_reviews = generate_review_info(user_reviews, User.objects.get(username=request.user))
     
         context = {
             "profile":user_profile,
             "username":username,
             "edit_access":edit_access,
-            "likes_list":likes_list,
-            "bookmarks_list":bookmarks_list,
+            "likes_list":user_likes,
+            "bookmark_coffees":bookmark_coffees,
+            "user_reviews":user_reviews
         }
         return render(request, 'profile.html', context)
     else:
@@ -256,8 +267,10 @@ def get_replies_and_comments(review, user):
     }
 
 def get_average_rating(coffee_slug):
-    average_rating = Review.objects.filter(coffee_slug=coffee_slug).aggregate(Avg('rating'))['rating__avg']
-    return round(average_rating,1) if average_rating else 0 
+    aggregated_review = Review.objects.filter(coffee_slug=coffee_slug).aggregate(Avg('rating'), Count('rating'))
+    average_rating = round(aggregated_review['rating__avg'],1) if aggregated_review['rating__avg'] else 0 
+    count_rating = aggregated_review['rating__count'] if aggregated_review['rating__count'] else 0 
+    return average_rating, count_rating 
 
 def get_comment_count(review_id):
     count =  Review.objects.filter(id=review_id).annotate(comment_count=Count('comments'))[0].comment_count
@@ -389,7 +402,7 @@ def coffee(request, slug):
     coffee_slug = coffee['slug']
     reviews = Review.objects.filter(coffee_slug=slug).order_by('first_published')
     is_bookmarked = Bookmarks.objects.filter(user=request.user, coffee_slug=slug).exists() if request.user.is_authenticated else False
-    avg_rating = get_average_rating(slug)
+    avg_rating, rating_count = get_average_rating(slug)
     
     # build dictionary of dictionaries of review and comments
     review_and_comment = [get_replies_and_comments(review, request.user) for review in reviews] 
@@ -405,7 +418,7 @@ def coffee(request, slug):
         "is_bookmarked":is_bookmarked,
         "in_diary":check_coffee_in_diary(request.user.id, coffee_slug),
         'average_rating':avg_rating,
-        "review_count":len(review_and_comment)
+        "review_count":rating_count
     }
     return render(request, 'coffee.html', context)
 

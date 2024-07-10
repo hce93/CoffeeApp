@@ -12,14 +12,31 @@
         {% if coffees %}
         {% for coffee in coffees %}
             <div class="coffee">
-                {% include 'coffee_display_template.html' with coffee=coffee%}
+                {% include 'coffee_display_template.html' with coffee=coffee diary=True in_diary=coffee.in_diary%}
             </div>
         {% endfor %}
         {% else %}
             <p>Your search returned no coffees....</p>
         {% endif %}
-        
     </div>
+    <div class="pagination">
+        <span class="step-links">
+            {% if coffees.has_previous %}
+                <a href="?page=1">&laquo; first</a>
+                <a href="?page={{ coffees.previous_page_number }}">previous</a>
+            {% endif %}
+    
+            <span class="current">
+                Page {{ coffees.number }} of {{ coffees.paginator.num_pages }}.
+            </span>
+    
+            {% if coffees.has_next %}
+                <a href="?page={{ coffees.next_page_number }}">next</a>
+                <a href="?page={{ coffees.paginator.num_pages }}">last &raquo;</a>
+            {% endif %}
+        </span>
+    </div>
+
 {% endblock content %}
 
 
@@ -27,8 +44,14 @@
     <script>
         var csrfToken = "{{ csrf_token }}";
         var like_url = "{% url 'like_item' 1 %}".replace('1','')
+        var bookmark_url = "{% url 'bookmark_coffee' 1 %}".replace('1','')
+        var diary_url = "{% url 'add_to_diary' 1 %}".replace('1','')
+        var diary_page=false
     </script>
     <script src="{% static 'like-button.js' %}" id="url"></script>
+    <script src="{% static 'star-rating.js' %}" id="url"></script>
+    <script src="{% static 'bookmark.js' %}" id="url"></script>
+    <script src="{% static 'add-diary.js' %}" id="url"></script>
 {% endblock scripts %}
     
     
