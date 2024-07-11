@@ -3,11 +3,19 @@
 
 
 {% block content %}
-    <form>
+    <form id="search-form">
         <input type="text" value="{{search_query}}" name="search" placeholder="Search by coffee or roaster..." >
         <button type="submit">Search</button>
     </form>
     <a href="{% url 'all_coffees' %}"><button type="button">Reset</button></a>
+    <div class="sort">
+        <select id="sort-options">
+            <option value="avg_rating" {% if sort_order == 'avg_rating' %}selected{% endif %}>Average Rating</option>
+            <option value="count_rating" {% if sort_order == 'count_rating' %}selected{% endif %}>Review Count</option>
+            {% comment %} <option value="a_z_desc">A-Z</option>
+            <option value="a_z_asc">Z-A</option> {% endcomment %}
+        </select>
+    </div>
     <div class="search_coffee_contianer">
         {% if coffees %}
         {% for coffee in coffees %}
@@ -22,17 +30,17 @@
     <div class="pagination">
         <span class="step-links">
             {% if coffees.has_previous %}
-                <a href="?page=1">&laquo; first</a>
-                <a href="?page={{ coffees.previous_page_number }}">previous</a>
+                <a onclick="changePage(1)">&laquo; first</a>
+                <a onclick="changePage({{ coffees.previous_page_number }})">previous</a>
             {% endif %}
     
             <span class="current">
-                Page {{ coffees.number }} of {{ coffees.paginator.num_pages }}.
+                Page {{ coffees.number }} of {{ coffees.paginator.num_pages }}
             </span>
     
             {% if coffees.has_next %}
-                <a href="?page={{ coffees.next_page_number }}">next</a>
-                <a href="?page={{ coffees.paginator.num_pages }}">last &raquo;</a>
+                <a onclick="changePage({{ coffees.next_page_number }})" >next</a>
+                <a onclick="changePage({{ coffees.paginator.num_pages }})" >last &raquo;</a>
             {% endif %}
         </span>
     </div>
@@ -52,6 +60,7 @@
     <script src="{% static 'star-rating.js' %}" id="url"></script>
     <script src="{% static 'bookmark.js' %}" id="url"></script>
     <script src="{% static 'add-diary.js' %}" id="url"></script>
+    <script src="{% static 'search.js' %}" id="url"></script>
 {% endblock scripts %}
     
     

@@ -18,6 +18,7 @@ import json
 from datetime import datetime
 from django.contrib.auth.decorators import permission_required, login_required
 from django.core.paginator import Paginator, EmptyPage
+from functools import partial
 
 def index(request):
     # top 5 highest rated coffees
@@ -117,6 +118,13 @@ def all_coffees(request):
                                                 {"roaster":{"$regex":search_query, "$options":'i'}}]}))
     for x in range(len(coffees)):
         coffees[x]=add_details_to_coffee(coffees[x], request.user)
+
+    sort_by = request.GET.get('sort', default='avg_rating')
+    
+    def sort_function(element, sort_by):
+        return float(element[sort_by])
+    sort = partial(sort_function, sort_by=sort_by)
+    coffees=sorted(coffees, key=sort, reverse=True)
     
     paginator=Paginator(coffees, per_page=5)
     page = request.GET.get('page', default=1)
@@ -124,18 +132,28 @@ def all_coffees(request):
         items = paginator.get_page(number=page)
     except EmptyPage:
         items=[]
-        
+    
     if request.method=="POST" and request.POST.get('diary_search'):
         html=""
-        for coffee in coffees:
+        for coffee in items:
             html+=render_to_string('coffee_display_template.html', context={"coffee":coffee,"diary":True, "in_diary":check_coffee_in_diary(request.user.id, coffee['slug'])}, request=request)
-        return JsonResponse({"success":True, "html":html})
+        total_pages = paginator.num_pages
+        pages_string="Page " + str(page) + " of " + str(total_pages)
+        context = {
+                    "success":True,
+                    "html":html,
+                    "pages":pages_string
+                   }
+        if page<total_pages:
+            print("Adding")
+            context['more_pages']=True
+        return JsonResponse(context)
     else:
         context={
         "search_query":search_query,
-        "coffees":items
+        "coffees":items,
+        "sort_order":sort_by,
     }
-    
     return render(request, 'all_coffees.html', context)
 
 def create_profile(username):

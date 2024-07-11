@@ -391,10 +391,18 @@ search_form.addEventListener('submit', function(){
             if(response.success){
                 var search_div = document.getElementById('search_coffee_container')
                 search_div.innerHTML=response.html 
+                document.getElementById('page_count').innerHTML=response.pages
+                if(response.more_pages){
+                    var element = document.createElement('a')
+                    element.setAttribute('id', 'next_page')
+                    element.setAttribute('current_page', 1)
+                    element.innerHTML="next"
+                    document.getElementById('pagination_holder').appendChild(element)
+                }
             }
+            setAverageRating()
         }
     }))
-
 })
 
 // function to clear the search bar and the search results

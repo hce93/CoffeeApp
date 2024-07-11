@@ -55,6 +55,23 @@
         </form>
         <div id="search_coffee_container"></div>
     </div>
+    <div class="pagination">
+        <span class="step-links" id="pagination_holder">
+            {% if coffees.has_previous %}
+                <a onclick="changePage(1)">&laquo; first</a>
+                <a onclick="changePage({{ coffees.previous_page_number }})">previous</a>
+            {% endif %}
+    
+            <span class="current" id="page_count">
+                Page {{ coffees.number }} of {{ pages }}
+            </span>
+    
+            {% if coffees.has_next %}
+                <a onclick="changePage({{ coffees.next_page_number }})" >next</a>
+                <a onclick="changePage({{ coffees.paginator.num_pages }})" >last &raquo;</a>
+            {% endif %}
+        </span>
+    </div>
 {% endblock content %}
             
 
@@ -76,6 +93,7 @@
     <script src="{% static 'diary.js' %}" id="url"></script>
     <script src="{% static 'add-diary.js' %}" id="url"></script>
     <script src="{% static 'star-rating.js' %}" id="url"></script>
+    <script src="{% static 'search.js' %}" id="url"></script>
 {% endblock scripts %}
     
 
