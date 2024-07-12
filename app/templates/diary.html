@@ -53,24 +53,13 @@
             <input type="text" value="{{search_query}}" name="search" placeholder="Search for coffee or roaster..." >
             <button type="submit">Search</button>
         </form>
-        <div id="search_coffee_container"></div>
+        <button id="reset_button">Reset</button>
+        <div class="search_coffee_container" id="coffee_search"></div>
     </div>
-    <div class="pagination">
-        <span class="step-links" id="pagination_holder">
-            {% if coffees.has_previous %}
-                <a onclick="changePage(1)">&laquo; first</a>
-                <a onclick="changePage({{ coffees.previous_page_number }})">previous</a>
-            {% endif %}
-    
-            <span class="current" id="page_count">
-                Page {{ coffees.number }} of {{ pages }}
-            </span>
-    
-            {% if coffees.has_next %}
-                <a onclick="changePage({{ coffees.next_page_number }})" >next</a>
-                <a onclick="changePage({{ coffees.paginator.num_pages }})" >last &raquo;</a>
-            {% endif %}
-        </span>
+    <div class="pagination" id="pagination_holder">
+        <span class="step-links" id="pagination_previous_holder"></span>
+        <span id="pagination_text"></span>
+        <span class="step-links" id="pagination_next_holder"></span>
     </div>
 {% endblock content %}
             
@@ -86,6 +75,8 @@
         var review_from_diary = "{% url 'review_from_diary' 1 %}".replace("1","")
         var all_coffee = "{% url 'all_coffees' %}"
         var diary_url = "{% url 'add_to_diary' 1 %}".replace('1','')
+        var like_url = "{% url 'like_item' 1 %}".replace('1','')
+        var bookmark_url = "{% url 'bookmark_coffee' 1 %}".replace('1','')
         var csrfToken = "{{ csrf_token }}";
         var re_run_table_bool=true;
         var diary_page=true;
@@ -93,8 +84,9 @@
     <script src="{% static 'diary.js' %}" id="url"></script>
     <script src="{% static 'add-diary.js' %}" id="url"></script>
     <script src="{% static 'star-rating.js' %}" id="url"></script>
-    <script src="{% static 'search.js' %}" id="url"></script>
+    <script src="{% static 'bookmark.js' %}" id="url"></script>
+    <script src="{% static 'like-button.js' %}" id="url"></script>
+    {% comment %} <script src="{% static 'search.js' %}" id="url"></script> {% endcomment %}
 {% endblock scripts %}
     
 
-{% comment %} need to build a dictionary to pass to the table. need to include the coffee data as well {% endcomment %}

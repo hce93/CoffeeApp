@@ -134,15 +134,22 @@ def all_coffees(request):
         items=[]
     
     if request.method=="POST" and request.POST.get('diary_search'):
+        # check if request includes a page number and get that specific page if it does
+        if request.POST.get('page'):
+            print("Getting Page: ", request.POST.get('page'))
+            page = int(request.POST.get('page'))
+            items = paginator.get_page(number=page)
+        # create html string for the search
+        
         html=""
         for coffee in items:
             html+=render_to_string('coffee_display_template.html', context={"coffee":coffee,"diary":True, "in_diary":check_coffee_in_diary(request.user.id, coffee['slug'])}, request=request)
         total_pages = paginator.num_pages
-        pages_string="Page " + str(page) + " of " + str(total_pages)
         context = {
                     "success":True,
                     "html":html,
-                    "pages":pages_string
+                    "current_page":page,
+                    "total_pages":total_pages
                    }
         if page<total_pages:
             print("Adding")

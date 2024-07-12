@@ -122,7 +122,7 @@
     overflow: scroll;
 }
 
-.search_coffee_contianer{
+.search_coffee_container{
     display: flex;
     flex-wrap: wrap;   
 }

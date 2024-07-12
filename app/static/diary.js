@@ -114,7 +114,6 @@ function generateTable(initialData, disable_editing_headers){
         hot.render();
     });
     
-    console.log("Data: ",initialData)
     //variable to store a boolean for whether a cell is currently in edit mode
     var editStates={}
     const hot = new Handsontable(container, {
@@ -145,8 +144,6 @@ function generateTable(initialData, disable_editing_headers){
                     var col = selection[0].start.col;
                     var cellProperties = hot.getCellMeta(row, col);
                     cellProperties.readOnly = !cellProperties.readOnly;
-                    console.log(hot.getColHeader(col))
-                    console.log(cleaned_disable_editing_headers)
                     //update cellKey so we can track what name to display in menu
                     var cellKey = `${row},${col}`;
                     if(editStates[cellKey]==null){
@@ -202,7 +199,6 @@ function generateTable(initialData, disable_editing_headers){
                         url:get_coffee_from_diary+id,
                         success: function(response){
                             if(response.success){
-                                console.log("Working")
                             window.location.href=`/coffee/${response.slug}`
                             }else{
                                 alert("An error occured. Unable to redirect")
@@ -272,7 +268,6 @@ function generateTable(initialData, disable_editing_headers){
                 }   
             }
             saveChanges(changes[0], id)
-            console.log("ID: ", id)
         }
     })
     // render table to display the changes
@@ -290,7 +285,7 @@ function saveChanges(changes, id){
             "csrfmiddlewaretoken": csrfToken
         },
         success: function(response){
-            console.log("Successsss")
+            console.log("Success")
         }
     })
 }
@@ -375,10 +370,43 @@ function sendNewReview(button){
 
 // add search functionality
 const search_form = document.getElementById('search-form')
-console.log(search_form)
 search_form.addEventListener('submit', function(){
     event.preventDefault()
     var search = search_form.querySelector('input').value
+    if(search==""){
+        // if search nothing then remove
+    }else{
+        $.ajax(({
+            type:"POST",
+            url:all_coffee,
+            data:{
+                'csrfmiddlewaretoken':csrfToken,
+                'search':search,
+                'diary_search':true,
+            },
+            success: function(response){
+                if(response.success){
+                    var search_div = document.getElementById('coffee_search')
+                    search_div.innerHTML=response.html 
+                    generateNextPreviousButtons(response.current_page, response.total_pages)
+                }
+                setAverageRating()
+            }
+        }))
+    }
+})
+
+// function to clear the search bar and the search results
+    // used when an item from the search is added ot the diary
+function clearSearch(){
+    document.getElementById('search-form').querySelector('input').value=""
+    document.getElementById('coffee_search').innerHTML=""
+}
+
+function diaryChangePage(element, change){
+    const current_page=element.getAttribute('current_page')
+    const search =document.getElementById('search-form').querySelector('input').value
+
     $.ajax(({
         type:"POST",
         url:all_coffee,
@@ -386,30 +414,71 @@ search_form.addEventListener('submit', function(){
             'csrfmiddlewaretoken':csrfToken,
             'search':search,
             'diary_search':true,
+            'page':parseInt(current_page)+change
         },
-        success: function(response){
-            if(response.success){
-                var search_div = document.getElementById('search_coffee_container')
-                search_div.innerHTML=response.html 
-                document.getElementById('page_count').innerHTML=response.pages
-                if(response.more_pages){
-                    var element = document.createElement('a')
-                    element.setAttribute('id', 'next_page')
-                    element.setAttribute('current_page', 1)
-                    element.innerHTML="next"
-                    document.getElementById('pagination_holder').appendChild(element)
-                }
-            }
+        success:function(response){
+            var search_div = document.getElementById('coffee_search')
+            search_div.innerHTML=response.html 
+            generateNextPreviousButtons(parseInt(response.current_page), parseInt(response.total_pages))
             setAverageRating()
         }
     }))
-})
-
-// function to clear the search bar and the search results
-    // used when an item from the search is added ot the diary
-function clearSearch(){
-    document.getElementById('search-form').querySelector('input').value=""
-    document.getElementById('search_coffee_container').innerHTML=""
+}
+// function to update next and previous page links in the search box
+function generateNextPreviousButtons(current_page, total_pages){
+    // add text for current page
+    document.getElementById('pagination_text').innerHTML="Page " + current_page + " of " + total_pages
+    if(current_page>1){
+        // check if previous button exists
+        if(document.getElementById('previous_page')){
+            var previous_element=document.getElementById('previous_page')
+            previous_element.setAttribute('current_page', current_page)
+        }else{
+            var previous_element = document.createElement('a')
+            previous_element.setAttribute('id', 'previous_page')
+            previous_element.setAttribute('current_page', current_page)
+            previous_element.innerHTML="previous"
+            previous_element.setAttribute('onclick', 'diaryChangePage(this,-1)')
+            document.getElementById('pagination_previous_holder').appendChild(previous_element)
+        }
+        // generate previous button
+        
+    }
+    if(current_page<total_pages){
+        // check if next function already exists
+        if(document.getElementById('next_page')){
+            var previous_element=document.getElementById('next_page')
+            previous_element.setAttribute('current_page', current_page)
+        }else{
+            var next_element = document.createElement('a')
+            next_element.setAttribute('id', 'next_page')
+            next_element.setAttribute('current_page', current_page)
+            next_element.innerHTML="next"
+            next_element.setAttribute('onclick', 'diaryChangePage(this,1)')
+            document.getElementById('pagination_next_holder').appendChild(next_element)
+        }
+        
+    }
+    if(current_page==total_pages){
+        if(document.getElementById('next_page')){
+            document.getElementById('next_page').remove()
+        }
+    }
+    if(current_page==1){
+        if(document.getElementById('previous_page')){
+            document.getElementById('previous_page').remove()
+        }
+    }
 }
 
+// function to reset the search
+document.getElementById('reset_button').addEventListener('click', function(){
+    document.getElementById('coffee_search').innerHTML=""
+    document.getElementById('search-form').querySelector('input').value=""
+    var pagination_holder=document.getElementById('pagination_holder')
+    console.log(pagination_holder)
+    for(var child of pagination_holder.children){
+        child.innerHTML=""
+    }
+})
 
