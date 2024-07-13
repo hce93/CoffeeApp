@@ -61,7 +61,9 @@ class CoffeeForm(forms.Form):
     variety=forms.CharField(max_length=100, required=False)
     masl=forms.IntegerField(required=False)
     description=forms.CharField(required=False)
+    roaster_flavour_notes=forms.CharField(required=False)
     image = forms.ImageField(required=False)
+    
     
     def __init__(self, *args, **kwargs):
         super(CoffeeForm, self).__init__(*args, **kwargs)

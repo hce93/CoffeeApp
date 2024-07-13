@@ -10,10 +10,13 @@
     <a href="{% url 'all_coffees' %}"><button type="button">Reset</button></a>
     <div class="sort">
         <select id="sort-options">
-            <option value="avg_rating" {% if sort_order == 'avg_rating' %}selected{% endif %}>Average Rating</option>
-            <option value="count_rating" {% if sort_order == 'count_rating' %}selected{% endif %}>Review Count</option>
-            {% comment %} <option value="a_z_desc">A-Z</option>
-            <option value="a_z_asc">Z-A</option> {% endcomment %}
+            <option value="avg_rating_desc" {% if sort_order == 'avg_rating_desc' %}selected{% endif %}>Average Rating</option>
+            <option value="count_rating_desc" {% if sort_order == 'count_rating_desc' %}selected{% endif %}>Review Count</option>
+            <option value="title_asc" {% if sort_order == 'title_asc' %}selected{% endif %}>Name (a-z)</option>
+            <option value="title_desc" {% if sort_order == 'title_desc' %}selected{% endif %}>Name (z-a)</option>
+            <option value="roaster_asc" {% if sort_order == 'roaster_asc' %}selected{% endif %}>Roaster (a-z)</option>
+            <option value="roaster_desc" {% if sort_order == 'roaster_desc' %}selected{% endif %}>Roaster (z-a)</option>
+            <option value="date_added_desc" {% if sort_order == 'date_added_desc' %}selected{% endif %}>Most Recent</option>
         </select>
     </div>
     <div class="search_coffee_container">
@@ -27,24 +30,26 @@
             <p>Your search returned no coffees....</p>
         {% endif %}
     </div>
-    <div class="pagination">
-        <span class="step-links">
-            {% if coffees.has_previous %}
-                <a onclick="changePage(1)">&laquo; first</a>
-                <a onclick="changePage({{ coffees.previous_page_number }})">previous</a>
-            {% endif %}
     
-            <span class="current">
-                Page {{ coffees.number }} of {{ coffees.paginator.num_pages }}
+    {% if coffees %}
+        <div class="pagination">
+            <span class="step-links">
+                {% if coffees.has_previous %}
+                    <a onclick="changePage(1)">&laquo; first</a>
+                    <a onclick="changePage({{ coffees.previous_page_number }})">previous</a>
+                {% endif %}
+        
+                <span class="current">
+                    Page {{ coffees.number }} of {{ coffees.paginator.num_pages }}
+                </span>
+        
+                {% if coffees.has_next %}
+                    <a onclick="changePage({{ coffees.next_page_number }})" >next</a>
+                    <a onclick="changePage({{ coffees.paginator.num_pages }})" >last &raquo;</a>
+                {% endif %}
             </span>
-    
-            {% if coffees.has_next %}
-                <a onclick="changePage({{ coffees.next_page_number }})" >next</a>
-                <a onclick="changePage({{ coffees.paginator.num_pages }})" >last &raquo;</a>
-            {% endif %}
-        </span>
-    </div>
-
+        </div>
+    {% endif %}
 {% endblock content %}
 
 

@@ -2,9 +2,12 @@
 document.getElementById('sort-options').addEventListener('change', function(){
     // determine sort seleted by user
     const sort_query = this.value;
-    updateHref('sort', sort_query)
+    const srule = this.getAttribute('desc')?this.getAttribute('desc'):1
+    console.log("DESC: ", this.getAttribute('desc'))
+    updateHref('sort', sort_query, srule)
 })
 
+// search functionality
 document.getElementById('search-form').addEventListener('submit', function(){
     event.preventDefault()
     const form = this
@@ -16,7 +19,9 @@ function changePage(page_number){
     updateHref('page', page_number)
 }
 
-function updateHref(element, query){
+// generate search url
+// use 0 or 1 for desc or asc
+function updateHref(element, query, desc=0){
     let url = new URL(window.location.href)
     let params = new URLSearchParams(url.search)
     params.set(element, query)

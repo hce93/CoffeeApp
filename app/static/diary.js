@@ -30,14 +30,14 @@ function load_diary_request(){
                 document.getElementsByClassName('asterisk')[0].style.display="none"
                 document.getElementsByClassName('controls-container')[0].style.display="none"
             }else{
-                generateTable(initialData, disable_editing_headers)
+                generateTable(initialData, disable_editing_headers, response.coffee_headers)
             }
         }
     })
 }
 
 //function to generate handsontable, referenced in event listener above
-function generateTable(initialData, disable_editing_headers){
+function generateTable(initialData, disable_editing_headers, coffee_headers){
     const keys = generateUniqueKeys(initialData)
     const key_types=generateDataTypeForKeys(keys)
     cleaned_disable_editing_headers = generateColumnHeaders(disable_editing_headers, true)
@@ -45,6 +45,7 @@ function generateTable(initialData, disable_editing_headers){
     var column_info = []
     var last_update
     var temp
+    var coffee_items=[]
     key_types.forEach(item=>{
         if(item[1]=="date"){
             if(item[0]=="last_update"){
@@ -61,18 +62,22 @@ function generateTable(initialData, disable_editing_headers){
         if(item[0]=="title"){
             column_info.splice(0,0,temp)
         }else if(item[0]=="roaster"){
-            if(column_info.includes("Title")){
-                column_info.splice(1,0,temp)
+            if(column_info.includes("title")){
+                column_info.splice(0,0,temp)
             }else{
                 column_info.splice(1,0,temp)
             }
             // save last_update in a seperate variable so we can push it to the end of the table
         }else if(item[0]=="last_update"){
             last_update=temp
+        }else if(coffee_headers.includes(item[0])){
+            console.log("We have a coffee item")
+            coffee_items.push(temp)
         }else{
             column_info.push(temp)
         }
     })
+    column_info.splice(2,0,...coffee_items)
     // add last_update to the end of the table
     column_info.push(last_update)
     const columns = generateColumnHeaders(column_info)

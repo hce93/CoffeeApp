@@ -19,6 +19,7 @@ from datetime import datetime
 from django.contrib.auth.decorators import permission_required, login_required
 from django.core.paginator import Paginator, EmptyPage
 from functools import partial
+import re
 
 def index(request):
     # top 5 highest rated coffees
@@ -115,16 +116,26 @@ def all_coffees(request):
         search_query= request.GET.get('search') if request.GET.get('search') else ""
         
     coffees=list(coffee_collection.find({"$or":[{"title":{"$regex":search_query, "$options":'i'}},
-                                                {"roaster":{"$regex":search_query, "$options":'i'}}]}))
+                                                {"roaster":{"$regex":search_query, "$options":'i'}},
+                                                {"varietal":{"$regex":search_query, "$options":'i'}}]}))
     for x in range(len(coffees)):
         coffees[x]=add_details_to_coffee(coffees[x], request.user)
 
-    sort_by = request.GET.get('sort', default='avg_rating')
+    # sort order according to what the user has selected
+    sort_request = request.GET.get('sort', default='avg_rating_desc')
+    sort_query = re.sub('_asc|_desc','',sort_request)
+    sort_rule = bool(re.search('desc',sort_request))
+    print("Sorting Request: ", sort_request)
+    print("Sorting Query: ", sort_query)
+    print("Sorting RUle: ", sort_rule)
     
     def sort_function(element, sort_by):
-        return float(element[sort_by])
-    sort = partial(sort_function, sort_by=sort_by)
-    coffees=sorted(coffees, key=sort, reverse=True)
+        try:
+            return element[sort_by].lower()
+        except AttributeError:
+            return element[sort_by]
+    sort = partial(sort_function, sort_by=sort_query)
+    coffees=sorted(coffees, key=sort, reverse=sort_rule)
     
     paginator=Paginator(coffees, per_page=5)
     page = request.GET.get('page', default=1)
@@ -136,7 +147,6 @@ def all_coffees(request):
     if request.method=="POST" and request.POST.get('diary_search'):
         # check if request includes a page number and get that specific page if it does
         if request.POST.get('page'):
-            print("Getting Page: ", request.POST.get('page'))
             page = int(request.POST.get('page'))
             items = paginator.get_page(number=page)
         # create html string for the search
@@ -159,7 +169,7 @@ def all_coffees(request):
         context={
         "search_query":search_query,
         "coffees":items,
-        "sort_order":sort_by,
+        "sort_order":sort_request,
     }
     return render(request, 'all_coffees.html', context)
 
@@ -418,7 +428,9 @@ def coffee(request, slug):
     review_form = ReviewForm()
     comment_form = CommentForm()
     coffee = coffee_collection.find_one({"slug":slug})
-    coffee_data = {key:value for key, value in coffee.items() if key not in ['_id', 'slug', 'image','likes']}
+    # use regex matching to create display names and modify date value
+    coffee_data = {re.sub('[-_]+',' ', key).capitalize():re.sub('\s\d{2}:\d{2}:\d{2}.\d{6}','',str(value)) for key, value in coffee.items() if key not in ['_id', 'slug', 'image','likes']}
+    print(coffee_data)
     like_data = {
         "is_liked":is_liked(coffee, request.user, True),
         "like_count":len(coffee['likes']) if 'likes' in coffee.keys() else 0 
@@ -690,9 +702,6 @@ def diary_entry(request, slug):
     if request.user.id==diary_entry["user_id"]:
         diary_html, suggestions=generate_diary_html(diary_entry, request)
         coffee = coffee_collection.find_one({"slug":diary_entry["coffeeSlug"]})
-        print("html: ", type(diary_html))
-        if diary_html:
-            print("something in html")
         context={
             "entry":diary_entry,
             "coffee":coffee,
@@ -709,7 +718,7 @@ def get_diary_data(request):
         context={"success":False}
         if request.user.is_authenticated:
             # headers to ignore are the uneditable fields in the handsontable
-            user_diary, table_headers, headers_to_ignore=generate_diary(request.user.id)
+            user_diary, coffee_headers, headers_to_ignore=generate_diary(request.user.id)
             # add last_update to be ignored as this beloings to diary but should not be editable
             headers_to_ignore.append('last_update')
             # convert id to a string from ObjectId so it can be sent as part of json response
@@ -717,11 +726,8 @@ def get_diary_data(request):
                 diary['_id']=str(diary['_id'])
             context["success"]=True
             context["diary"]=user_diary
-            context['headers']=table_headers
+            context['coffee_headers']=coffee_headers
             context['headers_to_ignore']=headers_to_ignore
-        print("Diary: ", user_diary)
-            
-        print("Ignore: ", headers_to_ignore)
         return JsonResponse(context)
 
 
@@ -741,8 +747,10 @@ def generate_diary(user_id):
     user_diary=coffee_diary.find({"user_id":user_id})
     ignore = ["user_id","coffeeID","coffeeSlug", "image", "likes", "slug", "date_added"]
     user_diary, headers_to_ignore = add_coffee_data_to_diary(user_diary)
+    print("Headers to Ignore: ", headers_to_ignore)
     data=[]
     table_headers=[]
+    coffee_entry_headers_to_keep=[item for item in headers_to_ignore if item not in ignore if item!="_id"]
     
     for entry in user_diary:
         # append generated headers so we ignore them in further iterations
@@ -751,7 +759,7 @@ def generate_diary(user_id):
         table_headers+=entry_header
         entry_data = {key:entry[key] for key in entry.keys() if key in table_headers}
         data.append(entry_data)
-    return data, table_headers, headers_to_ignore
+    return data, coffee_entry_headers_to_keep, headers_to_ignore
 
 # function to add a coffee to the diary of a user. Used in the specific coffee pages
 def add_to_diary(request, slug):

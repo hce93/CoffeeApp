@@ -12,6 +12,7 @@
         {% for key, value in coffee_data.items %}
             <p>{{key}}: {{value}}</p>
         {% endfor %}
+        <img src="{{coffee_image}}" style="max-height:200px"/>
         <div id="avg-rating-holder">
             <div id="avg_rating" value="{{average_rating}}">
                 <span class="avg_star"></span>
@@ -22,7 +23,7 @@
             </div>
             <p>(<span id="avg-rating-count">{{review_count}}</span>)</p>
         </div>
-        <img src="{{coffee_image}}" style="max-height:200px"/>
+        
         <div>
             {% include 'like_template.html' with item=coffee_slug type="coffee" is_liked=like_data.is_liked like_count=like_data.like_count %}
             {% if is_bookmarked and user.is_authenticated%}

@@ -39,7 +39,7 @@
         </form>
     </div>
     <div id="coffee" class="half">
-        {{coffee}}
+        {% include 'coffee_display_template.html' with coffee=coffee %}
     </div>
 </div>
 {% endblock content %}
