@@ -17,7 +17,7 @@ function updateStars(){
             rating = parseInt(rating_holders[i].getAttribute('rating'))
             for(var x=0; x<children.length;x++){
                 if(x<rating){
-                    children[x].style.color="black"
+                    children[x].style.color="gray"
                 }else{
                     children[x].style.color="#ddd"
                 }
@@ -58,7 +58,7 @@ function setAverageRating(){
         for(var x=0; x<stars.length; x++){
             if(x<floor){
                 stars[x].style.setProperty('--percent', `100%`)
-                stars[x].style.color="black"
+                stars[x].style.color="gray"
             }else{
                 stars[x].style.setProperty('--percent', `0%`)
                 stars[x].style.color="#ddd"
@@ -69,7 +69,7 @@ function setAverageRating(){
             console.log(stars)
             stars[floor].classList.add('partial')
             stars[floor].style.setProperty('--percent', `${(rating%1)*100}%`)
-            stars[floor].style.color="black"
+            stars[floor].style.color="gray"
         }
     }
     // const star_div = document.getElementById("avg_rating")
@@ -82,10 +82,10 @@ function generateStars(rating, edit=false){
     if(edit){
         // modify existing element if we allow editing so the hover functions etc from the dom will work
 
-        filled_template = `<span class="new_star" style="color: black;"></span>`
+        filled_template = `<span class="new_star" style="color: gra;"></span>`
         empty_template = `<span class="new_star" style="color: #ddd;"></span>`
     }else{
-        filled_template = `<span class="avg_star" style="color: black;"></span>`
+        filled_template = `<span class="avg_star" style="color: gray;"></span>`
         empty_template = `<span class="avg_star" style="color: #ddd;"></span>`
     }
     
@@ -106,8 +106,8 @@ $('.new_star').hover(function(){
     if(icon.parent()[0].classList.contains('selected')){
         //
     }else{
-        icon.css("color","black")
-        prior_siblings.css("color","black")
+        icon.css("color","gray")
+        prior_siblings.css("color","gray")
     }
     },function(){
         // This function will execute when mouse leaves the element
@@ -128,8 +128,8 @@ $('.new_star').click(function(){
     var prior_siblings = icon.prevAll()
     var next_siblings = icon.nextAll()
 
-    icon.css("color","black")
-    prior_siblings.css("color","black")
+    icon.css("color","gray")
+    prior_siblings.css("color","gray")
     next_siblings.css("color","#ddd")
 
     icon.parent().addClass('selected')

@@ -118,7 +118,7 @@ function generateTable(initialData, disable_editing_headers, coffee_headers){
         // render table
         hot.render();
     });
-    
+    console.log("DATA: ", initialData)
     //variable to store a boolean for whether a cell is currently in edit mode
     var editStates={}
     const hot = new Handsontable(container, {
@@ -130,7 +130,7 @@ function generateTable(initialData, disable_editing_headers, coffee_headers){
         contextMenu:  {
             items: {
               "row_details": {
-                name: 'View Entry',
+                name: 'Edit Entry/Add Items',
                 callback: function(key, selection, clickEvent) {
                     var row = selection[0].start.row;
                     var id =hot.getDataAtRow(row)[columns.indexOf(' id')];

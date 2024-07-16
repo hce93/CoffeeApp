@@ -4,9 +4,9 @@
     {% endif %}
     
     <p class="review-author">User: {{author}}</p>    
-    <p class="restrict-100-chars content">{{review.content}}</p>
+    <p class="restrict-25-chars content">{{review.content}}</p>
     <div class="rating-holder main-ratings" rating={{review.rating}} review_id={{review.id}} ></div>
-        <div class="action-box">
+        <div class="review-action-box">
             
             {% if home %}
                 {% include 'like_template.html' with item=review.id type="review" is_liked=is_liked like_count=like_count %}

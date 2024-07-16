@@ -1,6 +1,10 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
+{% endblock head %}
+    
 
 {% block content %}    
 <div id="diary-entry">
@@ -39,9 +43,11 @@
         </form>
     </div>
     <div id="coffee" class="half">
-        {% include 'coffee_display_template.html' with coffee=coffee %}
+        {% include 'long_coffee_display_template.html' with coffee=coffee%}
+        <a href="{% url 'coffee' coffee.slug %}">View the coffee</a>
     </div>
 </div>
+
 {% endblock content %}
 
 {% block scripts %}
@@ -49,8 +55,34 @@
 <script>
     var edit_diary_url = "{% url 'edit_diary' 1 %}".replace("1",'')
     var check_diary_header_url = "{% url 'check_diary_header' %}"
+    var like_url = "{% url 'like_item' 1 %}".replace('1','')
+    var bookmark_url = "{% url 'bookmark_coffee' 1 %}".replace('1','')
+    var get_single_diary_entry = "{% url 'get_single_diary_entry' 1 %}".replace('1','')
     var csrfToken = "{{ csrf_token }}";
 </script>
 <script src="{% static 'diary-entry.js' %}" id="url"></script>
 <script src="{% static 'generate-html.js' %}" id="url"></script>
+<script src="{% static 'bookmark.js' %}" id="url"></script>
+<script src="{% static 'star-rating.js' %}" id="url"></script>
+<script src="{% static 'like-button.js' %}" id="url"></script>
+<script>
+    // event listenrer to clear up display names for coffee
+    document.addEventListener('DOMContentLoaded', function(){
+        console.log("Running")
+        var keys = document.getElementsByClassName('key')
+        console.log(keys.length)
+        for(let x=0;x<keys.length;x++){
+            const current_html=keys[x].innerHTML
+            var new_html =current_html.replace(/[_-]/,' ').replace('\s\d{2}:\d{2}:\d{2}.\d{6}','')
+            var first_letter = new_html.charAt(0).toUpperCase()
+            keys[x].innerHTML=first_letter+new_html.slice(1)
+        }
+
+
+
+    })
+    
+
+</script>
+
 {% endblock scripts %}

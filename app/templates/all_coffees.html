@@ -23,7 +23,7 @@
         {% if coffees %}
         {% for coffee in coffees %}
             <div class="coffee">
-                {% include 'coffee_display_template.html' with coffee=coffee diary=True in_diary=coffee.in_diary%}
+                {% include 'short_coffee_display_template.html' with coffee=coffee diary=True in_diary=coffee.in_diary%}
             </div>
         {% endfor %}
         {% else %}

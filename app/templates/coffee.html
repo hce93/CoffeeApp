@@ -8,38 +8,12 @@
 {% endblock head %}
         
 {% block content %}
-    <div id="coffee">
-        {% for key, value in coffee_data.items %}
-            <p>{{key}}: {{value}}</p>
-        {% endfor %}
-        <img src="{{coffee_image}}" style="max-height:200px"/>
-        <div id="avg-rating-holder">
-            <div id="avg_rating" value="{{average_rating}}">
-                <span class="avg_star"></span>
-                <span class="avg_star"></span>
-                <span class="avg_star"></span>
-                <span class="avg_star"></span>
-                <span class="avg_star"></span>
-            </div>
-            <p>(<span id="avg-rating-count">{{review_count}}</span>)</p>
-        </div>
-        
-        <div>
-            {% include 'like_template.html' with item=coffee_slug type="coffee" is_liked=like_data.is_liked like_count=like_data.like_count %}
-            {% if is_bookmarked and user.is_authenticated%}
-                <span id="{{coffee_slug}}" class="material-symbols-outlined bookmark saved" title="bookmark">bookmark</span>
-                <span id="{{coffee_slug}}" class="material-symbols-outlined add-diary" title="add to diary" added="{{in_diary}}">docs_add_on</span>
-            {% elif user.is_authenticated %}
-                <span id="{{coffee_slug}}" class="material-symbols-outlined bookmark" title="bookmark">bookmark</span>
-                <span id="{{coffee_slug}}" class="material-symbols-outlined add-diary" title="add to diary" added="{{in_diary}}">docs_add_on</span>
-            {% endif %}
-        </div>
-    </div>
+{% include 'long_coffee_display_template.html' with coffee=coffee diary=True%}
     {% if user.is_authenticated %}
         <span id="show-review-form" onclick="showReviewForm()">Write a Review...</span>
         <form method="POST" id="review-form">
             {% csrf_token %}
-            <input type="hidden" id="hidden" name="reply" value="{{coffee_slug}}">
+            <input type="hidden" id="hidden" name="reply" value="{{coffee.slug}}">
             <div>
                 <textarea name="content" cols="40" rows="10" placeholder="Review..." required id="id_content"></textarea>
             </div>
@@ -66,7 +40,7 @@
         <div class="review-container">
             <div class="review-div">
                 <p class="review-author">User: {{review.review.0.author}}</p>    
-                <p class="restrict-100-chars content">{{review.review.0.content}}</p>
+                <p class="restrict-25-chars content">{{review.review.0.content}}</p>
                 <div class="rating-holder main-ratings" rating={{review.review.0.rating}} review_id={{review.review.0.id}} ></div>
                 <div class="action-box">
                     {% include 'like_template.html' with item=review.review.0.id type="review" is_liked=review.review.1 like_count=review.review.2.like_count %}
@@ -135,9 +109,22 @@
     <script src="{% static 'reviews.js' %}" id="url"></script>
     <script src="{% static 'bookmark.js' %}" id="url"></script>
     <script src="{% static 'add-diary.js' %}" id="url"></script>
-    <script>
-        //script to handle adding a coffee to diary
 
+    <script>
+        // event listenrer to clear up display names for coffee
+        document.addEventListener('DOMContentLoaded', function(){
+            console.log("Running")
+            var keys = document.getElementsByClassName('key')
+            console.log(keys.length)
+            for(let x=0;x<keys.length;x++){
+                const current_html=keys[x].innerHTML
+                var new_html =current_html.replace(/[_-]/,' ').replace('\s\d{2}:\d{2}:\d{2}.\d{6}','')
+                var first_letter = new_html.charAt(0).toUpperCase()
+                keys[x].innerHTML=first_letter+new_html.slice(1)
+            }
+        })
+        
+    
     </script>
 {% endblock scripts %}
         

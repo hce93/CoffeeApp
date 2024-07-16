@@ -23,14 +23,14 @@
     <h3>Your Likes</h3>
     <div class="recent-coffee-div">
         {% for like in likes_list %}
-            {% include 'coffee_display_template.html' with coffee=like diary=True in_diary=like.in_diary%}
+            {% include 'short_coffee_display_template.html' with coffee=like diary=True in_diary=like.in_diary%}
         {% endfor %}
     </div>
 
     <h3>Your Saves</h3>
     <div class="recent-coffee-div">
         {% for bookmark in bookmark_coffees %}
-            {% include 'coffee_display_template.html' with coffee=bookmark diary=True in_diary=bookmark.in_diary%} 
+            {% include 'short_coffee_display_template.html' with coffee=bookmark diary=True in_diary=bookmark.in_diary%} 
         {% endfor %}
     </div>
 

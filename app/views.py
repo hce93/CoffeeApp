@@ -153,7 +153,7 @@ def all_coffees(request):
         
         html=""
         for coffee in items:
-            html+=render_to_string('coffee_display_template.html', context={"coffee":coffee,"diary":True, "in_diary":check_coffee_in_diary(request.user.id, coffee['slug'])}, request=request)
+            html+=render_to_string('short_coffee_display_template.html', context={"coffee":coffee,"diary":True, "in_diary":check_coffee_in_diary(request.user.id, coffee['slug'])}, request=request)
         total_pages = paginator.num_pages
         context = {
                     "success":True,
@@ -429,33 +429,34 @@ def coffee(request, slug):
     comment_form = CommentForm()
     coffee = coffee_collection.find_one({"slug":slug})
     # use regex matching to create display names and modify date value
-    coffee_data = {re.sub('[-_]+',' ', key).capitalize():re.sub('\s\d{2}:\d{2}:\d{2}.\d{6}','',str(value)) for key, value in coffee.items() if key not in ['_id', 'slug', 'image','likes']}
-    print(coffee_data)
-    like_data = {
-        "is_liked":is_liked(coffee, request.user, True),
-        "like_count":len(coffee['likes']) if 'likes' in coffee.keys() else 0 
-    }
-    coffee_image=coffee['image']
+    # coffee_data = {re.sub('[-_]+',' ', key).capitalize():re.sub('\s\d{2}:\d{2}:\d{2}.\d{6}','',str(value)) for key, value in coffee.items() if key not in ['_id', 'slug', 'image','likes']}
+
+    # like_data = {
+    #     "is_liked":is_liked(coffee, request.user, True),
+    #     "like_count":len(coffee['likes']) if 'likes' in coffee.keys() else 0 
+    # }
+    # coffee_image=coffee['image']
     coffee_slug = coffee['slug']
     reviews = Review.objects.filter(coffee_slug=slug).order_by('first_published')
-    is_bookmarked = Bookmarks.objects.filter(user=request.user, coffee_slug=slug).exists() if request.user.is_authenticated else False
-    avg_rating, rating_count = get_average_rating(slug)
-    
+    # is_bookmarked = Bookmarks.objects.filter(user=request.user, coffee_slug=slug).exists() if request.user.is_authenticated else False
+    # avg_rating, rating_count = get_average_rating(slug)    
     # build dictionary of dictionaries of review and comments
     review_and_comment = [get_replies_and_comments(review, request.user) for review in reviews] 
-    print(len(review_and_comment))
+    coffee=add_details_to_coffee(coffee, request.user)
+    coffee['date_added']=re.sub('\s\d{2}:\d{2}:\d{2}.\d{6}','',str(coffee['date_added']))
     context = {
-        "coffee_data":coffee_data,
-        "like_data":like_data,
-        "coffee_image":coffee_image,
-        "coffee_slug":coffee_slug,
+        # "coffee_data":coffee_data,
+        # "like_data":like_data,
+        # "coffee_image":coffee_image,
+        # "coffee_slug":coffee_slug,
         "review_form":review_form,
         "comment_form":comment_form,
         "review_and_comment":review_and_comment,
-        "is_bookmarked":is_bookmarked,
+        # "is_bookmarked":is_bookmarked,
         "in_diary":check_coffee_in_diary(request.user.id, coffee_slug),
-        'average_rating':avg_rating,
-        "review_count":rating_count
+        # 'average_rating':avg_rating,
+        # "review_count":rating_count,
+        "coffee":coffee
     }
     return render(request, 'coffee.html', context)
 
@@ -702,15 +703,28 @@ def diary_entry(request, slug):
     if request.user.id==diary_entry["user_id"]:
         diary_html, suggestions=generate_diary_html(diary_entry, request)
         coffee = coffee_collection.find_one({"slug":diary_entry["coffeeSlug"]})
+        test=add_details_to_coffee(coffee, request.user)
+        test['date_added']=re.sub('\s\d{2}:\d{2}:\d{2}.\d{6}','',str(test['date_added']))
         context={
             "entry":diary_entry,
             "coffee":coffee,
             "slug":slug,
             "diary_html":diary_html,
-            "suggestions":suggestions
+            "suggestions":suggestions,
+            "test":test
         }
         return render(request, "diary_entry.html", context)
     return render(request, "Invalid request")
+
+def get_single_diary_entry(request, slug):
+    diary_entry = dict(coffee_diary.find_one({"_id":ObjectId(slug)}))
+    diary_entry['_id']=str(diary_entry['_id'])
+    diary_entry['coffeeID']=str(diary_entry['coffeeID'])
+    values = [[value] for key, value in diary_entry.items()]
+    rows = list(diary_entry.keys())
+    print("VAlues: ", values)
+    print("KEYS: ", rows)
+    return JsonResponse({"success":True,"data":diary_entry, "values":values, "rows":rows})
 
 # function diary template uses to load data to ajax
 def get_diary_data(request):

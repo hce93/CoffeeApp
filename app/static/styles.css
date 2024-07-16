@@ -1,4 +1,10 @@
+body{
+    overflow: scroll;
+}
 
+p, a{
+    color: gray !important;
+}
 
 .material-symbols-outlined{
     cursor: pointer;
@@ -25,10 +31,6 @@
 
 #show-review-form{
     cursor: pointer;
-}
-
-.action-box{
-    display:flex
 }
 
 .comment-div:hover .action-box{
@@ -99,13 +101,6 @@
     justify-content: space-between;
 }
 
-.restrict-100-chars{
-    width: 50ch;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-}
-
 .asterisk{
     font-size: 10px;
 }
@@ -163,3 +158,188 @@
 .rating-holder{
     display:flex
 }
+
+
+/* main stylings */
+main{
+    height:calc(100vh - 50px);
+    display:flex;
+    overflow-x: hidden;
+}
+main>*{
+    padding:0 10px
+}
+header{
+    height: 50px;
+}
+/* index page */
+    /* top banner stylings */
+    #top-banner{
+        display:flex;
+        justify-content:center;
+        padding: 10px 0
+    }
+    #logout-button, #login-button{
+        border:none;
+        background-color: transparent;
+        color:rgb(42, 42, 42);
+    }
+    #top-banner > *{
+        margin: 0 1%;
+        color:rgb(42, 42, 42);
+    }
+    #top-banner > *:hover{
+        text-decoration: none;   
+    }
+
+    /* title and search bar */
+    #welcome-div{
+        height:max(45vh, 400px);
+        align-content: center;
+        position:relative;
+        margin-bottom: 20px;
+    }
+    #index-title{
+        text-align: center;
+        width:100%;
+        color: seashell;
+        font-size: 35px;
+        font-family: 'Font Awesome 6 Free';        
+    }
+    .sub-heading{
+        font-size: 20px;
+        font-family: 'Font Awesome 6 Free';
+        color: gray;
+        margin:0;
+        padding-top: 15px;
+    }
+    .search-bar{
+        text-align: center;
+        width:100%
+    }
+    .video-holder{
+        width:100%;
+        height:100%
+    }
+    #coffee-pour{
+        width:110vw;
+        height:100%;
+        object-fit:cover;
+        z-index:-100;
+        position: relative;
+        left:-10%
+    }
+    #welcome-info{
+        position:absolute;
+        top:30%;
+        height:40%;
+        width:500px;
+        left:calc(50% - 250px);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    .search-bar{
+        background-color: seashell;
+        border-radius: 20px;
+        display: flex;
+        justify-content: center;
+    }
+    .search-button{
+        border: none;
+        background-color: transparent;
+        display: flex;
+        align-items: center;
+        width: 10%;
+        color: grey;
+    }
+    .search-text{
+        border: none;
+        background-color: transparent;
+        width:90%;
+        margin: 1% 2% 1% 5%;
+        padding:0;
+        font-size: 20px;
+    }
+    #play-pause-button{
+        position: fixed;
+        top:max(45vh, 400px);
+        left: 95vw;
+        border:none;
+        background-color: transparent;
+        color: seashell !important;
+    }
+
+/* short coffee-display */
+.short-coffee-display{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height:100%
+}
+.action-box-holder{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.coffee-link{
+    display: flex;
+    flex-direction: column;
+    height:70%;
+    align-items: center;
+}
+.coffee-link>p{
+    text-align: center;
+    height:10%;
+    color: gray;
+}
+
+.coffee-link>img{
+    height:80%;
+    width: fit-content; 
+}
+
+.recent-coffee-div{
+    height: max(35%, 200px);
+    margin-bottom: 20px;
+    padding-top: 15px;
+    padding-bottom: 15px;
+}
+
+.review-div{
+    max-width: 30%;
+}
+
+.bookmark, .add-diary, .avg_star, #avg-rating-count, .fa-heart, .like-count, .fa-comment{
+    color: gray;
+}
+
+.restrict-25-chars{
+    width: 30ch;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.review-action-box{
+    display:flex;
+    align-items: center;
+}
+
+.brown-heading{
+    /* background-color: rgba(160, 117, 85, 0.459); */
+    background-image: linear-gradient(white,20%,  rgba(160, 117, 85, 0.459), 45%, rgba(160, 117, 85, 0.459));
+}
+.brown{
+    /* background-color: rgba(160, 117, 85, 0.459); */
+    background-image: linear-gradient(rgba(160, 117, 85, 0.459),90%,rgba(160, 117, 85, 0.459), 98%,  white);
+}
+
+.comment-count{
+    color: gray
+}
+
+
+
+/* footer styling */
