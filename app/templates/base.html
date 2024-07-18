@@ -48,11 +48,8 @@
         {% endblock content %}    
         </main>
         <footer>
-            {% if  user.is_authenticated %}
-            <form method="post" action="{% url 'profile' user}">
-              {% csrf_token %}
-              <button type="submit">Profile</button>
-            </form>
+            <p>The footer</p>
+            {% comment %} {% if  user.is_authenticated %}
             <form method="post" action="{% url 'logout' %}">
               {% csrf_token %}
               <button type="submit">Logout</button>
@@ -66,7 +63,7 @@
               {% csrf_token %}
               <button type="submit">Register</button>
             </form>
-          {% endif %}
+          {% endif %} {% endcomment %}
         </footer>
         {% block scripts %}
             

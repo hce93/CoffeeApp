@@ -1,5 +1,8 @@
 body{
     overflow: scroll;
+    display: flex;
+    flex-direction: column;
+    height:100%
 }
 
 p, a{
@@ -66,7 +69,7 @@ p, a{
     text-decoration: underline;
 }
 .review-div{
-    padding-bottom: 1%;
+    padding: 0% 0.5% 1% 0.5%;
 }
 
 .deleted, .added{
@@ -110,11 +113,12 @@ p, a{
     color:white !important;
 }
 
-.recent-coffee-div, .recent-review-div, .popular-review-div{
+.recent-review-div, .popular-review-div{
     width:100vw;
     display:flex;
     justify-content: space-around;
     overflow: scroll;
+    height:max(15%, 150px);
 }
 
 .search_coffee_container{
@@ -163,14 +167,19 @@ p, a{
 /* main stylings */
 main{
     height:calc(100vh - 50px);
+    width: 100vw;
     display:flex;
     overflow-x: hidden;
+    position: absolute;
+    flex:1;
+    margin-top: 3.5%;
 }
 main>*{
     padding:0 10px
 }
 header{
-    height: 50px;
+    flex: 0 0 5%;
+    background-color: white;
 }
 /* index page */
     /* top banner stylings */
@@ -197,7 +206,6 @@ header{
         height:max(45vh, 400px);
         align-content: center;
         position:relative;
-        margin-bottom: 20px;
     }
     #index-title{
         text-align: center;
@@ -262,9 +270,8 @@ header{
         font-size: 20px;
     }
     #play-pause-button{
-        position: fixed;
-        top:max(45vh, 400px);
-        left: 95vw;
+        position: relative;
+        top:-50px;
         border:none;
         background-color: transparent;
         color: seashell !important;
@@ -298,17 +305,23 @@ header{
 .coffee-link>img{
     height:80%;
     width: fit-content; 
+    border-radius: 100px;
 }
 
 .recent-coffee-div{
-    height: max(35%, 200px);
-    margin-bottom: 20px;
+    height: max(25%, 200px);
     padding-top: 15px;
     padding-bottom: 15px;
+    width:100vw;
+    display:flex;
+    justify-content: space-around;
 }
 
 .review-div{
     max-width: 30%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
 }
 
 .bookmark, .add-diary, .avg_star, #avg-rating-count, .fa-heart, .like-count, .fa-comment{
