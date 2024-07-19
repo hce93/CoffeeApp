@@ -2,7 +2,7 @@
     <p class="content">{{comment.0.content}}</p>
     
             
-        <div class="action-box">
+        <div class="action-box-holder">
             {% include 'like_template.html' with item=comment.0.id type="comment" is_liked=comment.1 like_count=comment.2.like_count is_deleted=comment.0.is_deleted %}
             {% if comment.0.is_deleted %}
                 <button class="btn comment">

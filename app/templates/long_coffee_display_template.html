@@ -1,34 +1,40 @@
-<div>
+<div class="long-coffee-display-holder">
     <div class="coffee-info">
-        <p>{{coffee.title}} - {{coffee.roaster}}</p>
+        <p><span class="title">{{coffee.title}}</span> - <span class="content">{{coffee.roaster}}</span></p>
         {% for key, value in coffee.items %}
             {% if key in 'title, roaster, image, slug, likes, avg_rating, count_rating, user_liked, in_diary, is_bookmarked, _id' %}
             {% else %}
                 <p><span class="key">{{key}}</span>: <span class="value">{{value}}</span></p>
             {% endif %} 
         {% endfor %}
-        <img src="{{coffee.image}}" style="height:200px">
-    </div>
-    {% include 'like_template.html' with is_liked=coffee.user_liked like_count=coffee.likes item=coffee.slug type="coffee" %}
-    {% if user.is_authenticated %}
-        {% if coffee.is_bookmarked  %}
-            <span id="{{coffee.slug}}" class="material-symbols-outlined bookmark saved" title="bookmark">bookmark</span>
-        {% else %}
-            <span id="{{coffee.slug}}" class="material-symbols-outlined bookmark" title="bookmark">bookmark</span>
-        {% endif %}
-    {% endif %}
-        
-    {% if diary and user.is_authenticated %}
-        <span id="{{coffee.slug}}" class="material-symbols-outlined add-diary" title="add to diary" added="{{coffee.in_diary}}">docs_add_on</span>
-    {% endif %}
-    <div id="avg-rating-holder">
-        <div id="avg_rating" value="{{coffee.avg_rating}}">
-            <span class="avg_star"></span>
-            <span class="avg_star"></span>
-            <span class="avg_star"></span>
-            <span class="avg_star"></span>
-            <span class="avg_star"></span>
+        <div>
+        <div class="action-box-holder justify-center">
+                {% include 'like_template.html' with is_liked=coffee.user_liked like_count=coffee.likes item=coffee.slug type="coffee" %}
+                {% if user.is_authenticated %}
+                    {% if coffee.is_bookmarked  %}
+                        <span id="{{coffee.slug}}" class="material-symbols-outlined bookmark saved" title="bookmark">bookmark</span>
+                    {% else %}
+                        <span id="{{coffee.slug}}" class="material-symbols-outlined bookmark" title="bookmark">bookmark</span>
+                    {% endif %}
+                {% endif %}
+                    
+                {% if diary and user.is_authenticated %}
+                    <span id="{{coffee.slug}}" class="material-symbols-outlined add-diary" title="add to diary" added="{{coffee.in_diary}}">docs_add_on</span>
+                {% endif %}
+            </div>
+            <div id="avg-rating-holder" class="justify-center">
+                <div id="avg_rating" value="{{coffee.avg_rating}}">
+                    <span class="avg_star"></span>
+                    <span class="avg_star"></span>
+                    <span class="avg_star"></span>
+                    <span class="avg_star"></span>
+                    <span class="avg_star"></span>
+                </div>
+                <p>(<span id="avg-rating-count">{{coffee.count_rating}}</span>)</p>
+            </div>
         </div>
-        <p>(<span id="avg-rating-count">{{coffee.count_rating}}</span>)</p>
+    </div>
+    <div class="coffee-image">
+        <img src="{{coffee.image}}">
     </div>
 </div>

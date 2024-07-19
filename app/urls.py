@@ -28,5 +28,8 @@ urlpatterns = [
     path('delete_diary_entry/<slug:id>', views.delete_diary_entry, name="delete_diary_entry"),
     path('get_coffee_from_diary/<slug:id>', views.get_coffee_from_diary, name="get_coffee_from_diary"),
     path('review_from_diary/<slug:id>', views.review_from_diary, name='review_from_diary'),
-    path('get_single_diary_entry,<slug:slug>', views.get_single_diary_entry, name='get_single_diary_entry')
+    path('get_single_diary_entry,<slug:slug>', views.get_single_diary_entry, name='get_single_diary_entry'),
+    path('manual/', views.manual, name='manual'),
+    path('faq/', views.faq, name='faq'),
+    path('terms/', views.terms, name='terms'),
 ]

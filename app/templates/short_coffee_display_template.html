@@ -13,7 +13,7 @@
         </div>
         <p>(<span id="avg-rating-count">{{coffee.count_rating}}</span>)</p>
     </div>
-    <div class="action-box-holder">
+    <div class="action-box-holder justify-center">
     {% include 'like_template.html' with is_liked=false like_count=coffee.likes item=coffee.slug is_liked=coffee.user_liked type="coffee" %}
     
     {% if user.is_authenticated %}

@@ -59,6 +59,7 @@ function sendEditRequest(button){
                         document.getElementById('avg_rating').setAttribute('value',getAverageRating())
                         setAverageRating()  
                     }
+                    truncateText()
                 }
             } else{
                 alert("An error occured")

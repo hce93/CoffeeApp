@@ -909,6 +909,14 @@ def review(request, id):
     }
     return render(request, 'single_review.html', context)  
 
+
+def manual(request):
+    return render(request, 'manual.html')
+def faq(request):
+    return render(request, 'faq.html')
+def terms(request):
+    return render(request, 'terms.html')
+
 # to do
     # need to implement star rating on the overall average rating
     # create user profile - including bookmarks/saves and likes?

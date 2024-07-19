@@ -35,14 +35,15 @@
             
     {% endif %}
         
-    
+    <h3>Reviews</h3>
     {% for review in review_and_comment %}
+
         <div class="review-container">
             <div class="review-div">
                 <p class="review-author">User: {{review.review.0.author}}</p>    
-                <p class="restrict-25-chars content">{{review.review.0.content}}</p>
+                <p class="review-content content">{{review.review.0.content}}</p>
                 <div class="rating-holder main-ratings" rating={{review.review.0.rating}} review_id={{review.review.0.id}} ></div>
-                <div class="action-box">
+                <div class="action-box-holder">
                     {% include 'like_template.html' with item=review.review.0.id type="review" is_liked=review.review.1 like_count=review.review.2.like_count %}
                     {% comment %} need to figure out here where to restrict none authorised users in the below 18 lines {% endcomment %}
                     {% if user.is_authenticated %}  
@@ -109,6 +110,7 @@
     <script src="{% static 'reviews.js' %}" id="url"></script>
     <script src="{% static 'bookmark.js' %}" id="url"></script>
     <script src="{% static 'add-diary.js' %}" id="url"></script>
+    <script src="{% static 'truncate-text.js' %}" id="url"></script>
 
     <script>
         // event listenrer to clear up display names for coffee

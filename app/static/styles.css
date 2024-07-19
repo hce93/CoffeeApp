@@ -1,9 +1,84 @@
-body{
+body, html {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    max-width: 100vw;
+}
+body {
+    display: flex;
+    flex-direction: column;
+}
+header {
+    height: 50px;
+    position: fixed;
+    top:0;
+    width:100vw;
+    background-color: white;
+    z-index: 99;
+}
+main {
+    flex:1;
+    /* min-height: calc(100vh - 10vh - 50px); */
+    overflow: hidden;
+    margin-top: 50px;
+}
+footer {
+    display: flex !important;
+    flex-direction: row;
+    justify-content: center;
+    padding: 20px 0;
+    min-height: 10vh;
+}
+.footer-content-div{
+    margin: 0 5vw
+}
+.footer-list{
+    list-style-type: none;
+    padding:0;
+    margin:0
+}
+.footer-header{
+    font-size: 1rem;
+    color: gray;
+    font-weight: bold;
+}
+
+#footer-logout-button{
+    border: none;
+    background-color: transparent;
+    padding: 0;
+    color: gray;
+}
+#footer-logout-button:hover{
+    text-decoration: underline;
+}
+p{
+    margin:0 !important
+}
+
+/* body{
     overflow: scroll;
     display: flex;
     flex-direction: column;
     height:100%
+} */
+/* header{
+    flex: 0 0 5%;
+    background-color: white;
+} */
+/* main stylings */
+/* main{
+    height:calc(100vh - 50px);
+    width: 100vw;
+    display:flex;
+    overflow-x: hidden;
+    position: absolute;
+    flex:1;
+    margin-top: 3.5%;
 }
+main>*{
+    padding:0 10px
+} */
 
 p, a{
     color: gray !important;
@@ -46,7 +121,18 @@ p, a{
 
 .btn{
     padding:0 !important;
-    min-width:50px
+    /* min-width:50px */
+    display: flex !important;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+.like-count, .comment-count{
+    font-size: 14px;
+    padding-left: 2px;
+}
+.fa-comment{
+    padding-left: 4px;
 }
 
 .comment-div > p, .review-div > p{
@@ -69,7 +155,7 @@ p, a{
     text-decoration: underline;
 }
 .review-div{
-    padding: 0% 0.5% 1% 0.5%;
+    padding: 0% 0.5% 0% 0.5%;
 }
 
 .deleted, .added{
@@ -114,11 +200,10 @@ p, a{
 }
 
 .recent-review-div, .popular-review-div{
-    width:100vw;
     display:flex;
     justify-content: space-around;
     overflow: scroll;
-    height:max(15%, 150px);
+    height:max(20vh, 150px);
 }
 
 .search_coffee_container{
@@ -164,23 +249,6 @@ p, a{
 }
 
 
-/* main stylings */
-main{
-    height:calc(100vh - 50px);
-    width: 100vw;
-    display:flex;
-    overflow-x: hidden;
-    position: absolute;
-    flex:1;
-    margin-top: 3.5%;
-}
-main>*{
-    padding:0 10px
-}
-header{
-    flex: 0 0 5%;
-    background-color: white;
-}
 /* index page */
     /* top banner stylings */
     #top-banner{
@@ -219,7 +287,7 @@ header{
         font-family: 'Font Awesome 6 Free';
         color: gray;
         margin:0;
-        padding-top: 15px;
+        padding: 15px 0 0 5px;
     }
     .search-bar{
         text-align: center;
@@ -275,26 +343,35 @@ header{
         border:none;
         background-color: transparent;
         color: seashell !important;
+        left:calc(100vw - 75px);
+        color: seashell;
+        
+        
     }
 
 /* short coffee-display */
 .short-coffee-display{
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: space-evenly;
     align-items: center;
     height:100%
 }
 .action-box-holder{
     display: flex;
-    justify-content: center;
     align-items: center;
+    flex-direction: row;
+}
+
+.justify-center{
+    justify-content: center;
 }
 .coffee-link{
     display: flex;
     flex-direction: column;
     height:70%;
     align-items: center;
+    justify-content: space-between;
 }
 .coffee-link>p{
     text-align: center;
@@ -309,7 +386,7 @@ header{
 }
 
 .recent-coffee-div{
-    height: max(25%, 200px);
+    height: max(30vh, 200px);
     padding-top: 15px;
     padding-bottom: 15px;
     width:100vw;
@@ -324,7 +401,7 @@ header{
     justify-content: space-evenly;
 }
 
-.bookmark, .add-diary, .avg_star, #avg-rating-count, .fa-heart, .like-count, .fa-comment{
+.bookmark, .add-diary, .avg_star, #avg-rating-count, .fa-heart, .like-count, .fa-comment, .delete-review, .edit-review-comment, .delete{
     color: gray;
 }
 
@@ -355,4 +432,46 @@ header{
 
 
 
-/* footer styling */
+/* coffee page styling */
+.long-coffee-display-holder{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    margin: 3vh 25vw;
+    height: max(35vh, 300px);
+    background-color: rgb(248, 250, 240);
+    padding: 2vh;
+    border-radius: 50px;
+}
+.coffee-image>img{
+    height:100%;
+    border-radius: 20px;
+}
+
+.coffee-info{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: center;
+}
+.title, .key{
+    font-weight: bold;
+}
+
+.restrict-200-chars{
+    /* width: 200ch; */
+    height:4ch;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.truncate {
+    display: -webkit-box;
+    -webkit-line-clamp: 5; /* number of lines to show */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-height: 7.5em; /* number of lines * line-height (assumed 1.5em) */
+    line-height: 1.5em; /* adjust this to your line height */
+}
