@@ -2,7 +2,13 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Edit Comment</h5>
+                <h5 class="modal-title" id="exampleModalLabel">Edit 
+                {% if comment %}
+                    Comment
+                {% else %}
+                    Review
+                {% endif %}
+                </h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -15,7 +21,7 @@
                     {% csrf_token %}
                     <input type="hidden" id="hidden" name="reply" value="{{coffee_slug}}">
                     <div>
-                        <textarea name="content" cols="40" rows="10" required id="id_content">{{content}}</textarea>
+                        <textarea name="content" cols="60" rows="10" required id="id_content">{{content}}</textarea>
                     </div>
                     {% if not comment %}
                         <input type="hidden" name="rating" placeholder="Rating" required id="id_rating" value="{{rating}}">

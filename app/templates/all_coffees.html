@@ -3,13 +3,12 @@
 
 
 {% block content %}
-    <form id="search-form">
-        <input type="text" value="{{search_query}}" name="search" placeholder="Search by coffee or roaster..." >
-        <button type="submit">Search</button>
-    </form>
-    <a href="{% url 'all_coffees' %}"><button type="button">Reset</button></a>
-    <div class="sort">
-        <select id="sort-options">
+    <div class="search-bar-container">
+        <form id="search-form" class="search-bar">
+            <input type="text" class="search-text" value="{{search_query}}" name="search" placeholder="Search by coffee or roaster..." >
+            <button class="search-button" type="submit"><span class="material-symbols-outlined">search</span></button>
+        </form>
+        <select id="sort-options" class="sort-contianer">
             <option value="avg_rating_desc" {% if sort_order == 'avg_rating_desc' %}selected{% endif %}>Average Rating</option>
             <option value="count_rating_desc" {% if sort_order == 'count_rating_desc' %}selected{% endif %}>Review Count</option>
             <option value="title_asc" {% if sort_order == 'title_asc' %}selected{% endif %}>Name (a-z)</option>
@@ -19,12 +18,10 @@
             <option value="date_added_desc" {% if sort_order == 'date_added_desc' %}selected{% endif %}>Most Recent</option>
         </select>
     </div>
-    <div class="search_coffee_container">
+    <div class="search-coffee-display">
         {% if coffees %}
         {% for coffee in coffees %}
-            <div class="coffee">
-                {% include 'short_coffee_display_template.html' with coffee=coffee diary=True in_diary=coffee.in_diary%}
-            </div>
+            {% include 'short_coffee_display_template.html' with coffee=coffee diary=True in_diary=coffee.in_diary%}
         {% endfor %}
         {% else %}
             <p>Your search returned no coffees....</p>
@@ -35,8 +32,12 @@
         <div class="pagination">
             <span class="step-links">
                 {% if coffees.has_previous %}
-                    <a onclick="changePage(1)">&laquo; first</a>
-                    <a onclick="changePage({{ coffees.previous_page_number }})">previous</a>
+                    <a onclick="changePage(1)"><span class="material-symbols-outlined">
+                        first_page
+                        </span></a>
+                    <a onclick="changePage({{ coffees.previous_page_number }})"><span class="material-symbols-outlined">
+                        keyboard_arrow_left
+                        </span></a>
                 {% endif %}
         
                 <span class="current">
@@ -44,8 +45,12 @@
                 </span>
         
                 {% if coffees.has_next %}
-                    <a onclick="changePage({{ coffees.next_page_number }})" >next</a>
-                    <a onclick="changePage({{ coffees.paginator.num_pages }})" >last &raquo;</a>
+                    <a onclick="changePage({{ coffees.next_page_number }})" ><span class="material-symbols-outlined">
+                        keyboard_arrow_right
+                        </span></a>
+                    <a onclick="changePage({{ coffees.paginator.num_pages }})" ><span class="material-symbols-outlined">
+                        last_page
+                        </span></a>
                 {% endif %}
             </span>
         </div>

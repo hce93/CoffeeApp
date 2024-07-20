@@ -1,21 +1,23 @@
 document.addEventListener('DOMContentLoaded', function () {
-    truncateText()
+    var maxLength = 200;
+    if(window.location.pathname=="/"){
+        maxLength=50
+    }
+    truncateText(maxLength)
     
 });
 
-function truncateText(){
+function truncateText(maxLength){
     const reviews = document.getElementsByClassName('review-content');
-    console.log("ALL REVIEWS: ", reviews)
-    const maxLength = 200;
     
     for(let index=0; index<reviews.length;index++){
-        let originalText = reviews[index].textContent;
+        let originalText = reviews[index].innerHTML;
         console.log("TEXT: ", originalText.length)
         if (originalText.length > maxLength) {
             let truncatedText = originalText.slice(0, maxLength);
             truncatedText = truncatedText.slice(0, truncatedText.lastIndexOf(" ")) + '...';
-            console.log("Truncated: ", truncatedText)
-            reviews[index].textContent = truncatedText;
+            truncatedText=truncatedText.split('\n').map(line=>`<p>${line}</p>`).join('')
+            reviews[index].innerHTML = truncatedText;
         }
     }
 }

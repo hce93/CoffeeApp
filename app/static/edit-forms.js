@@ -48,7 +48,9 @@ function sendEditRequest(button){
             }
             if(response.success){  
                 var content=div.find('.content')[0]
-                content.innerHTML=context['content']
+                var text = context['content'].split('\n').map(line=>`<p>${line}</p>`).join('')
+                // console.log("TEXT: ", context['content'])
+                content.innerHTML=text
                 // if a review is being edited then update the rating and the coffees average rating
                 if(context['type']=="review"){
                     div.find('.main-ratings')[0].setAttribute('rating', context['rating'])
@@ -59,7 +61,13 @@ function sendEditRequest(button){
                         document.getElementById('avg_rating').setAttribute('value',getAverageRating())
                         setAverageRating()  
                     }
-                    truncateText()
+                    try {
+                        truncateText()
+                    } catch(ReferenceError){
+                        //pass
+                        console.log("Ignoring attempt to truncate text")
+                    }
+                    
                 }
             } else{
                 alert("An error occured")

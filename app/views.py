@@ -462,7 +462,6 @@ def coffee(request, slug):
 
 # function to serve ajax requests to like comments/reviews/coffees
 def like_item(request, id):
-    print("Like!!")
     msg="failed"
     count=0
     user=request.user
@@ -905,8 +904,10 @@ def review(request, id):
         "coffee_image":coffee['image'],
         "coffee_title":coffee['title'],
         "coffee_roaster":coffee['roaster'],
+        "coffee":coffee,
         "single_review":True
     }
+    print("COFFEE: ", coffee)
     return render(request, 'single_review.html', context)  
 
 

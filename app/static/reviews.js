@@ -46,7 +46,10 @@ $(document).on('submit', '#review-form', function(event){
                 
             }).then(function(){
                 setAverageRating()
+            }).then(function(){
+                truncateText()
             })
+
         },
         error: function(xhr, status, error){
             $('#review-errors').text('An error occured: ' + error).show()
@@ -101,7 +104,7 @@ function showReviewForm(){
     var form = document.getElementById("review-form")
     var display = getComputedStyle(form).display
     if(display == "none"){
-        form.style.display = "block"
+        form.style.display = "flex"
     }else{
         form.style.display = "none"
     }

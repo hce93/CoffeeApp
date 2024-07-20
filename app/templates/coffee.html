@@ -15,7 +15,7 @@
             {% csrf_token %}
             <input type="hidden" id="hidden" name="reply" value="{{coffee.slug}}">
             <div>
-                <textarea name="content" cols="40" rows="10" placeholder="Review..." required id="id_content"></textarea>
+                <textarea name="content" cols="80" rows="10" placeholder="Review..." required id="id_content"></textarea>
             </div>
             <input type="hidden" name="rating" placeholder="Rating" required id="id_rating">
             <div id="star-rating">
@@ -35,19 +35,21 @@
             
     {% endif %}
         
-    <h3>Reviews</h3>
+    <h3 class="center line">Reviews</h3>
     {% for review in review_and_comment %}
 
         <div class="review-container">
             <div class="review-div">
-                <p class="review-author">User: {{review.review.0.author}}</p>    
-                <p class="review-content content">{{review.review.0.content}}</p>
+                <p class="review-author"><span class="key">User</span>: {{review.review.0.author}}</p>    
+                <a href="{% url 'review' review.review.0.id %}" title="View review" class="no-hover">
+                    <div class="review-content content">{{review.review.0.content|linebreaks}}</div>
+                </a>
                 <div class="rating-holder main-ratings" rating={{review.review.0.rating}} review_id={{review.review.0.id}} ></div>
                 <div class="action-box-holder">
                     {% include 'like_template.html' with item=review.review.0.id type="review" is_liked=review.review.1 like_count=review.review.2.like_count %}
                     {% comment %} need to figure out here where to restrict none authorised users in the below 18 lines {% endcomment %}
                     {% if user.is_authenticated %}  
-                        <button onclick="toggleDiv(this)" class="btn">
+                        <button onclick="toggleDiv(this)" class="btn" title="Add comment">
                     {% else %}
                         <button class="btn">
                     {% endif %}
@@ -57,11 +59,11 @@
                         {% comment %} check if user is the author {% endcomment %}
                         {% if review.review.3 %}
                             <span class="material-symbols-outlined delete-review" value={{review.review.0.id}}>delete</span>
-                            <span class="material-symbols-outlined edit-review-comment" value={{review.review.0.id}} type="review">edit</span>
+                            <span class="material-symbols-outlined edit-review-comment" value={{review.review.0.id}} type="review" title="Edit review">edit</span>
                             {% include 'edit_review_template.html' with content=review.review.0.content rating=review.review.0.rating id=review.review.0.id hidden=False record_type="review" %}
                         {% endif %}
                     </div>
-                    <a href="{% url 'review' review.review.0.id %}">Review page...</a>
+                    {% comment %} <a href="{% url 'review' review.review.0.id %}">View the full review and comments...</a> {% endcomment %}
                     <div class="reply-box" style="display:none">
                         <form method="POST" class="comment-form">
                             {% csrf_token %}
