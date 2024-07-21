@@ -1,10 +1,7 @@
 document.addEventListener('DOMContentLoaded', function () {
-    var maxLength = 200;
-    if(window.location.pathname=="/"){
-        maxLength=50
-    }
+    maxLength=checkPath()
     truncateText(maxLength)
-    
+    console.log("Checking length: ", maxLength)
 });
 
 function truncateText(maxLength){
@@ -20,4 +17,12 @@ function truncateText(maxLength){
             reviews[index].innerHTML = truncatedText;
         }
     }
+}
+
+function checkPath(){
+    var maxLength = 200;
+    if(window.location.pathname=="/"){
+        maxLength=50
+    }
+    return maxLength;
 }

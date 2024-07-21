@@ -47,14 +47,15 @@
     </div>
     <div id="handsontable-container"></div>
     <p class="asterisk">*right click a cell to edit or view the diary entry seprately</p>
-    <p>Search and add coffees to your diary below!</p>
     <div>
-        <form id="search-form">
-            <input type="text" value="{{search_query}}" name="search" placeholder="Search for coffee or roaster..." >
-            <button type="submit">Search</button>
-        </form>
-        <button id="reset_button">Reset</button>
-        <div class="search-coffee-container" id="coffee_search"></div>
+        <div class="search-bar-container diary-search-bar">
+            <form id="search-form" class="search-bar">
+                <input type="text" value="{{search_query}}" name="search" class="search-text" placeholder="Search for coffee or roaster...">
+                <button type="submit" class="search-button"><span class="material-symbols-outlined">search</span></button>
+            </form>
+            <button id="reset_button"><span class="material-symbols-outlined">undo</span></button>
+        </div>
+        <div class="search-coffee-container search-coffee-display" id="coffee_search"></div>
     </div>
     <div class="pagination" id="pagination_holder">
         <span class="step-links" id="pagination_previous_holder"></span>

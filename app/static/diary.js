@@ -393,9 +393,11 @@ search_form.addEventListener('submit', function(){
                 if(response.success){
                     var search_div = document.getElementById('coffee_search')
                     search_div.innerHTML=response.html 
+                    search_div.style.display="flex"
                     generateNextPreviousButtons(response.current_page, response.total_pages)
                 }
                 setAverageRating()
+                
             }
         }))
     }
@@ -433,52 +435,67 @@ function diaryChangePage(element, change){
 function generateNextPreviousButtons(current_page, total_pages){
     // add text for current page
     document.getElementById('pagination_text').innerHTML="Page " + current_page + " of " + total_pages
+    // check if previous button is needed
     if(current_page>1){
         // check if previous button exists
         if(document.getElementById('previous_page')){
+            // if it does update the current page attribute
             var previous_element=document.getElementById('previous_page')
             previous_element.setAttribute('current_page', current_page)
+        // if it doesnt exist add a new button
         }else{
-            var previous_element = document.createElement('a')
-            previous_element.setAttribute('id', 'previous_page')
-            previous_element.setAttribute('current_page', current_page)
-            previous_element.innerHTML="previous"
-            previous_element.setAttribute('onclick', 'diaryChangePage(this,-1)')
-            document.getElementById('pagination_previous_holder').appendChild(previous_element)
-        }
-        // generate previous button
-        
+            var previous_element=`<a onclick="diaryChangePage(this,-1)" id="previous_page" current_page=`+current_page+`><span class="material-symbols-outlined">keyboard_arrow_left</span></a>`
+            document.getElementById('pagination_previous_holder').innerHTML=previous_element   
+        }   
     }
     if(current_page<total_pages){
-        // check if next function already exists
         if(document.getElementById('next_page')){
             var previous_element=document.getElementById('next_page')
             previous_element.setAttribute('current_page', current_page)
         }else{
-            var next_element = document.createElement('a')
-            next_element.setAttribute('id', 'next_page')
-            next_element.setAttribute('current_page', current_page)
-            next_element.innerHTML="next"
-            next_element.setAttribute('onclick', 'diaryChangePage(this,1)')
-            document.getElementById('pagination_next_holder').appendChild(next_element)
+            var next_element=`<a onclick="diaryChangePage(this,1)" id="next_page" current_page=`+current_page+`><span class="material-symbols-outlined">keyboard_arrow_right</span></a>`
+            document.getElementById('pagination_next_holder').innerHTML=next_element
         }
-        
+        if(!document.getElementById('last_page')){
+            var x = total_pages-1    
+            var last_element=`<a onclick="diaryChangePage(this,1)" id="last_page" current_page="`+x+`"><span class="material-symbols-outlined">last_page</span></a>`
+            last_element=document.getElementById('pagination_next_holder').innerHTML+last_element
+            document.getElementById('pagination_next_holder').innerHTML=last_element   
+        }
     }
+    if(current_page>2){
+        if(!document.getElementById('first_page')){
+            var first_element=`<a onclick="diaryChangePage(this,-1)" id="first_page" current_page="2"><span class="material-symbols-outlined">first_page</span></a>`
+            first_element+=document.getElementById('pagination_previous_holder').innerHTML
+            document.getElementById('pagination_previous_holder').innerHTML=first_element
+        }
+    }
+    
+
+    // remove previous/next icons if not needed
     if(current_page==total_pages){
         if(document.getElementById('next_page')){
             document.getElementById('next_page').remove()
+        }
+        if(document.getElementById('last_page')){
+            document.getElementById('last_page').remove()
         }
     }
     if(current_page==1){
         if(document.getElementById('previous_page')){
             document.getElementById('previous_page').remove()
         }
+        if(document.getElementById('first_page')){
+            document.getElementById('first_page').remove()
+        }
     }
 }
 
 // function to reset the search
 document.getElementById('reset_button').addEventListener('click', function(){
-    document.getElementById('coffee_search').innerHTML=""
+    var search_div = document.getElementById('coffee_search')
+    search_div.innerHTML=""
+    search_div.style.display="none"
     document.getElementById('search-form').querySelector('input').value=""
     var pagination_holder=document.getElementById('pagination_holder')
     console.log(pagination_holder)

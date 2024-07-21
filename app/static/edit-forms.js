@@ -62,7 +62,7 @@ function sendEditRequest(button){
                         setAverageRating()  
                     }
                     try {
-                        truncateText()
+                        truncateText(checkPath())
                     } catch(ReferenceError){
                         //pass
                         console.log("Ignoring attempt to truncate text")

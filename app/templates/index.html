@@ -24,8 +24,8 @@
       {% include 'short_coffee_display_template.html' with coffee=coffee diary=True in_diary=coffee.in_diary%}
     {% endfor %}
   </div>
-  <h4 class="sub-heading brown-heading">Top Rated Coffees</h4>
-  <div class="recent-coffee-div brown">
+  <h4 class="sub-heading">Top Rated Coffees</h4>
+  <div class="recent-coffee-div secondary-colour">
     {% for coffee in top_rated_coffees %}
       {% include 'short_coffee_display_template.html' with coffee=coffee diary=True in_diary=coffee.in_diary%}
     {% endfor %}
@@ -44,8 +44,8 @@
   {% endfor %}
   </div>
 
-  <h4 class="sub-heading brown-heading">Popular Reviews</h4>
-  <div class="popular-review-div brown">
+  <h4 class="sub-heading">Popular Reviews</h4>
+  <div class="popular-review-div secondary-colour">
   {% for item in popular_reviews %}
     {% include 'review_template.html' with author=item.author review=item.review comment_count=item.comment_count home=True title=item.title roaster=item.roaster like_count=item.like_count is_liked=item.is_liked%}
   {% endfor %}
