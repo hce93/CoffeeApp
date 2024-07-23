@@ -110,17 +110,25 @@ def generate_review_info(reviews, user=None):
 
 # function to display all or search for specific coffees/roasters
 def all_coffees(request):
+    user=False
     if request.method=="POST" and request.POST.get('diary_search'):
         search_query = request.POST.get('search')
     else:
         search_query= request.GET.get('search') if request.GET.get('search') else ""
-        
+        user = True if request.GET.get('user') else False
+
     coffees=list(coffee_collection.find({"$or":[{"title":{"$regex":search_query, "$options":'i'}},
                                                 {"roaster":{"$regex":search_query, "$options":'i'}},
                                                 {"varietal":{"$regex":search_query, "$options":'i'}}]}))
+    coffees_with_info=[]
     for x in range(len(coffees)):
         coffees[x]=add_details_to_coffee(coffees[x], request.user)
-
+    # for coffee in coffees:
+    #     if request.user.id in coffee['likes']:
+    #         coffees[coffees.index(coffee)]=add_details_to_coffee(coffee, request.user)
+    #     else:
+    #         coffees.pop(coffees.index(coffee))
+    # print(coffees)
     # sort order according to what the user has selected
     sort_request = request.GET.get('sort', default='avg_rating_desc')
     sort_query = re.sub('_asc|_desc','',sort_request)
@@ -173,6 +181,7 @@ def all_coffees(request):
     }
     return render(request, 'all_coffees.html', context)
 
+
 def create_profile(username):
     user = User.objects.get(username=username)
     Profile.objects.create(user=user)
@@ -206,18 +215,18 @@ def user_profile(request, slug):
         username = User.objects.get(profile = user_profile).username
         edit_access = True if user_profile.user_id==request.user.id else False
         
-        user_likes = list(coffee_collection.find({"likes":request.user.id}))
+        user_likes = list(coffee_collection.find({"likes":request.user.id}))[0:5]
         # likes_list = [{key:like[key] for key in like.keys() if key in ['title','roaster','image','slug']} for like in user_likes]
         for x in range(len(user_likes)):
             user_likes[x]=add_details_to_coffee(user_likes[x], request.user)
         
         bookmarks_slugs = [bookmark.coffee_slug for bookmark in Bookmarks.objects.filter(user=request.user)]
-        bookmark_coffees = list(coffee_collection.find({"slug":{'$in':bookmarks_slugs}}))
+        bookmark_coffees = list(coffee_collection.find({"slug":{'$in':bookmarks_slugs}}))[0:5]
         
         for x in range(len(bookmark_coffees)):
             bookmark_coffees[x]=add_details_to_coffee(bookmark_coffees[x], request.user)
         
-        user_reviews = Review.objects.filter(author_id=request.user.id)
+        user_reviews = Review.objects.filter(author_id=request.user.id)[0:5]
         user_reviews = generate_review_info(user_reviews, User.objects.get(username=request.user))
     
         context = {

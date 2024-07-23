@@ -170,7 +170,7 @@ p, a{
 }
 
 .customSearchResultClass{
-    font-weight: bold;
+    /* font-weight: bold; */
     color: blueviolet !important;
 }
 #avg_rating, .avg_ratings{
@@ -218,6 +218,7 @@ p, a{
         border:none;
         background-color: transparent;
         color:rgb(42, 42, 42);
+        padding:0
     }
     #top-banner > *{
         margin: 0 1%;
@@ -246,6 +247,8 @@ p, a{
         color: gray;
         margin:0;
         padding: 15px 0 0 2.5vw;
+        display: flex;
+        flex-direction: row;
     }
     .video-holder{
         width:100%;
@@ -697,3 +700,24 @@ textarea{
 .search-coffee-container{
     display:none
 }
+
+/* profile page */
+.profile-holder{
+    display: flex;
+    flex-direction: column;
+    width: 50%;
+    justify-content: center;
+    align-items: center;
+    align-self: center;
+    background-color: rgb(248, 250, 240);
+    border-radius: 50px;
+    padding: 20px 40px;
+    margin:3vh 0
+}
+.profile-holder>*{
+    margin: 10px 0;
+}
+.sub-heading>span{
+    padding:0
+}
+

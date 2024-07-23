@@ -21,7 +21,8 @@ function truncateText(maxLength){
 
 function checkPath(){
     var maxLength = 200;
-    if(window.location.pathname=="/"){
+    var path = window.location.pathname
+    if(path=="/" || path.includes("profile")){
         maxLength=50
     }
     return maxLength;

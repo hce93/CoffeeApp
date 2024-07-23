@@ -1,41 +1,45 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block content %}
-    <h2>{{username}}</h2>
-    <img class="profile-image" src="{{profile.profile_image.url}}" alt="" style="max-height:200px"/>
-    {% if not profile.bio %}
-        
-        {% if edit_access %}
-            <p>You have no bio</p>    
-        {% else %}
-            <p>The user doesn't have a bio</p>
-        {% endif %}
-            
-        
-    {% else %}
-        {{profile.bio}}
-    {% endif %}
+    <div class="profile-holder">
+        <h2>{{username}}</h2>
+        <img class="profile-image" src="{{profile.profile_image.url}}" alt="" style="max-height:200px"/>
     
-    {% if edit_access %}
-        <a href="{% url 'edit_profile' slug=profile.slug%}"><p>Edit your bio</p></a>
-    {% endif %}
-
-    <h3>Your Likes</h3>
+        {% if not profile.bio %}
+            
+            {% if edit_access %}
+                <p>You have no bio</p>    
+            {% else %}
+                <p>The user doesn't have a bio</p>
+            {% endif %}
+                
+            
+        {% else %}
+            <div class="center">
+                {{profile.bio|linebreaks}}
+                {% if edit_access %}
+                    <a href="{% url 'edit_profile' slug=profile.slug%}"><span class="material-symbols-outlined">edit</span></a>
+                {% endif %}
+            </div>
+            
+        {% endif %}
+    </div>
+    <h4 class="sub-heading">Your Likes<span class="material-symbols-outlined">arrow_forward</span></h4>
     <div class="recent-coffee-div">
         {% for like in likes_list %}
             {% include 'short_coffee_display_template.html' with coffee=like diary=True in_diary=like.in_diary%}
         {% endfor %}
     </div>
 
-    <h3>Your Saves</h3>
-    <div class="recent-coffee-div">
+    <h4 class="sub-heading">Your Saves<span class="material-symbols-outlined">arrow_forward</span></h4>
+    <div class="recent-coffee-div secondary-colour">
         {% for bookmark in bookmark_coffees %}
             {% include 'short_coffee_display_template.html' with coffee=bookmark diary=True in_diary=bookmark.in_diary%} 
         {% endfor %}
     </div>
 
-    <p>Your Reviews</p>
-    <div class="popular-review-div">
+    <h4 class="sub-heading">Your Reviews<span class="material-symbols-outlined">arrow_forward</span></h4>
+    <div class="recent-review-div">
     {% for item in user_reviews %}
         {% include 'review_template.html' with author=item.author review=item.review comment_count=item.comment_count home=True title=item.title roaster=item.roaster like_count=item.like_count is_liked=item.is_liked%}
     {% endfor %}
@@ -54,5 +58,6 @@
     <script src="{% static 'star-rating.js' %}" id="url"></script>
     <script src="{% static 'add-diary.js' %}" id="url"></script>
     <script src="{% static 'bookmark.js' %}" id="url"></script>
+    <script src="{% static 'truncate-text.js' %}" id="url"></script>
 
 {% endblock scripts %}

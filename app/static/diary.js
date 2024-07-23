@@ -473,21 +473,25 @@ function generateNextPreviousButtons(current_page, total_pages){
     
 
     // remove previous/next icons if not needed
-    if(current_page==total_pages){
-        if(document.getElementById('next_page')){
-            document.getElementById('next_page').remove()
-        }
+    if(current_page>=(total_pages-1)){
         if(document.getElementById('last_page')){
             document.getElementById('last_page').remove()
         }
-    }
-    if(current_page==1){
-        if(document.getElementById('previous_page')){
-            document.getElementById('previous_page').remove()
+        if(current_page==total_pages){
+            if(document.getElementById('next_page')){
+                document.getElementById('next_page').remove()
+            }
+            
         }
+    }else if(current_page <= 2){
         if(document.getElementById('first_page')){
             document.getElementById('first_page').remove()
         }
+        if(current_page==1){
+            if(document.getElementById('previous_page')){
+                document.getElementById('previous_page').remove()
+            }
+        } 
     }
 }
 
