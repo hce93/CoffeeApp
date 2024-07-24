@@ -110,32 +110,44 @@ def generate_review_info(reviews, user=None):
 
 # function to display all or search for specific coffees/roasters
 def all_coffees(request):
-    user=False
+    likes=False
+    bookmarks=False
     if request.method=="POST" and request.POST.get('diary_search'):
         search_query = request.POST.get('search')
     else:
         search_query= request.GET.get('search') if request.GET.get('search') else ""
-        user = True if request.GET.get('user') else False
-
+        likes = True if request.GET.get('likes')=="true" else False
+        bookmarks = True if request.GET.get('bookmarks')=="true" else False
     coffees=list(coffee_collection.find({"$or":[{"title":{"$regex":search_query, "$options":'i'}},
                                                 {"roaster":{"$regex":search_query, "$options":'i'}},
                                                 {"varietal":{"$regex":search_query, "$options":'i'}}]}))
     coffees_with_info=[]
     for x in range(len(coffees)):
-        coffees[x]=add_details_to_coffee(coffees[x], request.user)
-    # for coffee in coffees:
-    #     if request.user.id in coffee['likes']:
-    #         coffees[coffees.index(coffee)]=add_details_to_coffee(coffee, request.user)
-    #     else:
-    #         coffees.pop(coffees.index(coffee))
-    # print(coffees)
+        # check if user is looking for liked coffee
+        if likes:
+            liked=request.user.id in coffees[x]['likes']
+            if liked:
+                detailed_coffee=add_details_to_coffee(coffees[x], request.user)
+                # check if user is searching for bookmarked and liked coffees
+                if bookmarks:
+                    # if coffee is bookmarked then append to list otherwise do nothing
+                    if detailed_coffee['is_bookmarked']:
+                        coffees_with_info.append(detailed_coffee)
+                # if user is only looking for likes and not bookmarks then append to list as it is liked
+                else: 
+                    coffees_with_info.append(detailed_coffee)
+        # if user only looking for bookmarks and not likes
+        elif bookmarks:
+            detailed_coffee=add_details_to_coffee(coffees[x], request.user)
+            if detailed_coffee['is_bookmarked']:
+                coffees_with_info.append(detailed_coffee)
+        # if neither bookmarks or likes is true the user is looking for all coffees so no filter applies
+        else:
+            coffees_with_info.append(add_details_to_coffee(coffees[x], request.user))
     # sort order according to what the user has selected
     sort_request = request.GET.get('sort', default='avg_rating_desc')
     sort_query = re.sub('_asc|_desc','',sort_request)
     sort_rule = bool(re.search('desc',sort_request))
-    print("Sorting Request: ", sort_request)
-    print("Sorting Query: ", sort_query)
-    print("Sorting RUle: ", sort_rule)
     
     def sort_function(element, sort_by):
         try:
@@ -143,9 +155,9 @@ def all_coffees(request):
         except AttributeError:
             return element[sort_by]
     sort = partial(sort_function, sort_by=sort_query)
-    coffees=sorted(coffees, key=sort, reverse=sort_rule)
+    sorted_coffees=sorted(coffees_with_info, key=sort, reverse=sort_rule)
     
-    paginator=Paginator(coffees, per_page=5)
+    paginator=Paginator(sorted_coffees, per_page=5)
     page = request.GET.get('page', default=1)
     try:
         items = paginator.get_page(number=page)

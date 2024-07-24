@@ -3,7 +3,6 @@ document.getElementById('sort-options').addEventListener('change', function(){
     // determine sort seleted by user
     const sort_query = this.value;
     const srule = this.getAttribute('desc')?this.getAttribute('desc'):1
-    console.log("DESC: ", this.getAttribute('desc'))
     updateHref('sort', sort_query, srule)
 })
 

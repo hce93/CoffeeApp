@@ -24,19 +24,22 @@
             
         {% endif %}
     </div>
-    <h4 class="sub-heading">Your Likes<span class="material-symbols-outlined">arrow_forward</span></h4>
+    
+    <h4 class="sub-heading">Your Likes<span class="material-symbols-outlined" id="user_likes">arrow_forward</span></h4>
     <div class="recent-coffee-div">
         {% for like in likes_list %}
             {% include 'short_coffee_display_template.html' with coffee=like diary=True in_diary=like.in_diary%}
         {% endfor %}
     </div>
 
-    <h4 class="sub-heading">Your Saves<span class="material-symbols-outlined">arrow_forward</span></h4>
+
+    <h4 class="sub-heading">Your Saves<span class="material-symbols-outlined" id="user_bookmarks">arrow_forward</span></h4>
     <div class="recent-coffee-div secondary-colour">
         {% for bookmark in bookmark_coffees %}
             {% include 'short_coffee_display_template.html' with coffee=bookmark diary=True in_diary=bookmark.in_diary%} 
         {% endfor %}
     </div>
+
 
     <h4 class="sub-heading">Your Reviews<span class="material-symbols-outlined">arrow_forward</span></h4>
     <div class="recent-review-div">
@@ -59,5 +62,6 @@
     <script src="{% static 'add-diary.js' %}" id="url"></script>
     <script src="{% static 'bookmark.js' %}" id="url"></script>
     <script src="{% static 'truncate-text.js' %}" id="url"></script>
+    <script src="{% static 'profile-search.js' %}" id="url"></script>
 
 {% endblock scripts %}
