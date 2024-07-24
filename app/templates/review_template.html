@@ -1,6 +1,6 @@
 <div class="review-div">
     {% if home %}
-        <a href="{% url 'review' review.id %}" class="key">{{title}} - {{roaster}}</a>
+        <a href="{% url 'review' review.id %}" class="key" title="view the review">{{title}} - {{roaster}}</a>
     {% endif %}
     
     <p class="review-author"><span class="key">User</span>: {{author}}</p>    

@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
-from django.db.models import Count, Avg
+from django.db.models import Count, Avg, Q
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from .models import coffee_collection, Profile, Review, Comments, Bookmarks, coffee_diary
@@ -931,6 +931,42 @@ def review(request, id):
     print("COFFEE: ", coffee)
     return render(request, 'single_review.html', context)  
 
+def user_reviews(request):
+    search_query= request.GET.get('search') if request.GET.get('search') else ""
+    # reviews = Review.objects.filter(author_id=request.user.id)
+    reviews = Review.objects.filter(
+        Q(author_id=request.user.id) & Q(coffee_slug__icontains=search_query)
+    )
+    reviews_updated=generate_review_info(reviews, User.objects.get(username=request.user))
+    
+    # sort order according to what the user has selected
+    sort_request = request.GET.get('sort', default='rating_desc')
+    sort_query = re.sub('_asc|_desc','',sort_request)
+    sort_rule = bool(re.search('desc',sort_request))
+    
+    def sort_function(element, sort_by):
+        try:
+            return element[sort_by]
+        except KeyError:
+            try:
+                return getattr(element['review'],sort_by)
+            except AttributeError:
+                return element[sort_by]
+    sort = partial(sort_function, sort_by=sort_query)
+    sorted_coffees=sorted(reviews_updated, key=sort, reverse=sort_rule)
+    print(sorted_coffees)
+    paginator=Paginator(sorted_coffees, per_page=5)
+    page = request.GET.get('page', default=1)
+    try:
+        items = paginator.get_page(number=page)
+    except EmptyPage:
+        items=[]
+    context={
+        "reviews":items,
+        "sort_order":sort_request,
+        "search_query":search_query
+    }
+    return render(request, 'user_reviews.html', context)
 
 def manual(request):
     return render(request, 'manual.html')

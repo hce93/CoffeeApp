@@ -31,27 +31,29 @@
     {% if coffees %}
         <div class="pagination">
             <span class="step-links">
-                {% if coffees.has_previous %}
-                    <a onclick="changePage(1)"><span class="material-symbols-outlined">
-                        first_page
-                        </span></a>
-                    <a onclick="changePage({{ coffees.previous_page_number }})"><span class="material-symbols-outlined">
-                        keyboard_arrow_left
-                        </span></a>
-                {% endif %}
-        
+                <div>
+                    {% if coffees.has_previous %}
+                        <a onclick="changePage(1)"><span class="material-symbols-outlined">
+                            first_page
+                            </span></a>
+                        <a onclick="changePage({{ coffees.previous_page_number }})"><span class="material-symbols-outlined">
+                            keyboard_arrow_left
+                            </span></a>
+                    {% endif %}
+                </div>
                 <span class="current">
                     Page {{ coffees.number }} of {{ coffees.paginator.num_pages }}
                 </span>
-        
-                {% if coffees.has_next %}
-                    <a onclick="changePage({{ coffees.next_page_number }})" ><span class="material-symbols-outlined">
-                        keyboard_arrow_right
-                        </span></a>
-                    <a onclick="changePage({{ coffees.paginator.num_pages }})" ><span class="material-symbols-outlined">
-                        last_page
-                        </span></a>
-                {% endif %}
+                <div>
+                    {% if coffees.has_next %}
+                        <a onclick="changePage({{ coffees.next_page_number }})" ><span class="material-symbols-outlined">
+                            keyboard_arrow_right
+                            </span></a>
+                        <a onclick="changePage({{ coffees.paginator.num_pages }})" ><span class="material-symbols-outlined">
+                            last_page
+                            </span></a>
+                    {% endif %}
+                </div>
             </span>
         </div>
     {% endif %}

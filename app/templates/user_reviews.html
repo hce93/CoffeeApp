@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% load static %}
+
+
+{% block content %}
+    <div class="search-bar-container">
+        <form id="search-form" class="search-bar">
+            <input type="text" class="search-text" value="{{search_query}}" name="search" placeholder="Search your reviews..." >
+            <button class="search-button" type="submit"><span class="material-symbols-outlined">search</span></button>
+        </form>
+        <select id="sort-options" class="sort-contianer">
+            <option value="rating_desc" {% if sort_order == 'rating_desc' %}selected{% endif %}>Rating</option>
+            <option value="title_asc" {% if sort_order == 'title_asc' %}selected{% endif %}>Name (a-z)</option>
+            <option value="title_desc" {% if sort_order == 'title_desc' %}selected{% endif %}>Name (z-a)</option>
+            <option value="roaster_asc" {% if sort_order == 'roaster_asc' %}selected{% endif %}>Roaster (a-z)</option>
+            <option value="roaster_desc" {% if sort_order == 'roaster_desc' %}selected{% endif %}>Roaster (z-a)</option>
+            <option value="first_published_desc" {% if sort_order == 'first_published_desc' %}selected{% endif %}>Most Recent</option>
+        </select>
+    </div>
+    <div class="search-review-display">
+        {% if reviews %}
+        {% for item in reviews %}
+            {% include 'review_template.html' with author=item.author review=item.review comment_count=item.comment_count home=True title=item.title roaster=item.roaster like_count=item.like_count is_liked=item.is_liked %}
+        {% endfor %}
+        {% else %}
+            <p>You have no reviews</p>
+        {% endif %}
+    </div>
+    
+    {% if reviews %}
+        <div class="pagination">
+            <span class="step-links">
+                <div>
+                    {% if reviews.has_previous %}
+                        <a onclick="changePage(1)"><span class="material-symbols-outlined">
+                            first_page
+                            </span></a>
+                        <a onclick="changePage({{ reviews.previous_page_number }})"><span class="material-symbols-outlined">
+                            keyboard_arrow_left
+                            </span></a>
+                    {% endif %}
+                </div>
+                <span class="current">
+                    Page {{ reviews.number }} of {{ reviews.paginator.num_pages }}
+                </span>
+                <div>
+                    {% if reviews.has_next %}
+                        <a onclick="changePage({{ reviews.next_page_number }})" ><span class="material-symbols-outlined">
+                            keyboard_arrow_right
+                            </span></a>
+                        <a onclick="changePage({{ reviews.paginator.num_pages }})" ><span class="material-symbols-outlined">
+                            last_page
+                            </span></a>
+                    {% endif %}
+                </div>
+            </span>
+        </div>
+    {% endif %}
+{% endblock content %}
+
+
+{% block scripts %}
+    <script>
+        var csrfToken = "{{ csrf_token }}";
+        var like_url = "{% url 'like_item' 1 %}".replace('1','')
+        var bookmark_url = "{% url 'bookmark_coffee' 1 %}".replace('1','')
+        var diary_url = "{% url 'add_to_diary' 1 %}".replace('1','')
+        var diary_page=false
+    </script>
+    <script src="{% static 'like-button.js' %}" id="url"></script>
+    <script src="{% static 'star-rating.js' %}" id="url"></script>
+    <script src="{% static 'bookmark.js' %}" id="url"></script>
+    <script src="{% static 'add-diary.js' %}" id="url"></script>
+    <script src="{% static 'search.js' %}" id="url"></script>
+    <script src="{% static 'truncate-text.js' %}" id="url"></script>
+{% endblock scripts %}
+    
+    

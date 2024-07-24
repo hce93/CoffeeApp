@@ -368,7 +368,7 @@ p, a{
     white-space: nowrap;
     text-overflow: ellipsis;
 }
-.recent-coffee-div, .search-coffee-display{
+.recent-coffee-div, .search-coffee-display, .search-review-display{
     height: max(30vh, 200px);
     padding-top: 15px;
     padding-bottom: 15px;
@@ -598,7 +598,7 @@ textarea{
 /* search coffee page */
 
 
-.search-coffee-display{
+.search-coffee-display, .search-review-display{
     justify-content: space-evenly;
     width: 80%;
     margin: 0 auto;
@@ -641,7 +641,8 @@ textarea{
 }
 .pagination{
     justify-content: center;
-    margin:20px auto
+    margin:20px auto;
+    width:200px;
 }
 .pagination>.step-links>a:hover{
     cursor: pointer;
@@ -650,8 +651,17 @@ textarea{
     display: flex;
     flex-direction: row;
     justify-content: center;
+    width:100%
 }
-
+.step-links>a{
+    width:25px
+}
+.step-links>span{
+    text-align: center;
+}
+.step-links>div{
+    flex:1 1 20%
+}
 .review-action-box>*{
     align-content: center;
 }
@@ -717,7 +727,35 @@ textarea{
 .profile-holder>*{
     margin: 10px 0;
 }
-.sub-heading>span{
+.sub-heading>span, .sub-heading>a{
     padding:0
 }
 
+/* user reviews */
+.search-review-display{
+    height: auto;
+    padding:15px
+}
+.search-review-display>.review-div{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: center;
+    height: auto;
+    min-width: 200px;
+    padding: 0 10px;
+    min-height: 200px;
+    height:250px
+}
+
+.search-review-display>.review-div>*{
+    height:10%;
+    width:max(20vw, 250px);
+    max-width: 100%;
+}
+.search-review-display>.review-div>.review-content{
+    height:70%;
+    display: flex;
+    flex-direction: column;
+    overflow:scroll
+}
