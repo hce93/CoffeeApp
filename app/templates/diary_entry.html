@@ -7,6 +7,9 @@
     
 
 {% block content %}    
+<a href="{% url 'diary' %}" id="return-to-diary">
+    <span class="material-symbols-outlined">arrow_back</span>Back to your diary
+</a>
 <div id="diary-entry">
     <div id="diary" class="half">
         <form id="diary-form" value="{{slug}}">

@@ -225,7 +225,13 @@ def register_user(request):
 
 def user_profile(request, slug):
     if request.user.is_authenticated:
-        user_profile = Profile.objects.get(slug = slug)
+        try:
+            user_profile = Profile.objects.get(slug = slug)
+        except:
+            context={
+                "msg":"The user doesn't exist"
+            }
+            return render(request, 'fail.html', context)
         username = User.objects.get(profile = user_profile).username
         edit_access = True if user_profile.user_id==request.user.id else False
         
@@ -253,7 +259,10 @@ def user_profile(request, slug):
         }
         return render(request, 'profile.html', context)
     else:
-        return HttpResponse("You need to log in")
+        context={
+            "msg":"You need to log in to access this page"
+        }
+        return render(request, 'fail.html', context)
 
 def edit_profile(request, slug):
     user = request.user
@@ -299,7 +308,10 @@ def coffee_form(request):
         }
         return render(request, 'coffee_form.html', context)
     else:
-        return HttpResponseForbidden("You do not have permission to access this page.")
+        context={
+            "msg":"You do not have permission to access this page"
+        }
+        return render(request, 'fail.html', context)
     
 def get_replies(comment, user):
     replies = Comments.objects.filter(parent=comment).order_by('date')
@@ -381,7 +393,8 @@ def create_review(request, slug):
                 "review":review,
                 "comment_count":0,
                 "comment_form":comment_form,
-                "user_is_author":True
+                "user_is_author":True,
+                "review_page":True
             }
             html = render_to_string('review_template.html', context, request=request)
             # print(html)
@@ -447,41 +460,33 @@ def coffee(request, slug):
             else:
                 # update review form with errors
                 review_form=form
-    # load forms and data
-    review_form = ReviewForm()
-    comment_form = CommentForm()
-    coffee = coffee_collection.find_one({"slug":slug})
-    # use regex matching to create display names and modify date value
-    # coffee_data = {re.sub('[-_]+',' ', key).capitalize():re.sub('\s\d{2}:\d{2}:\d{2}.\d{6}','',str(value)) for key, value in coffee.items() if key not in ['_id', 'slug', 'image','likes']}
-
-    # like_data = {
-    #     "is_liked":is_liked(coffee, request.user, True),
-    #     "like_count":len(coffee['likes']) if 'likes' in coffee.keys() else 0 
-    # }
-    # coffee_image=coffee['image']
-    coffee_slug = coffee['slug']
-    reviews = Review.objects.filter(coffee_slug=slug).order_by('first_published')
-    # is_bookmarked = Bookmarks.objects.filter(user=request.user, coffee_slug=slug).exists() if request.user.is_authenticated else False
-    # avg_rating, rating_count = get_average_rating(slug)    
-    # build dictionary of dictionaries of review and comments
-    review_and_comment = [get_replies_and_comments(review, request.user) for review in reviews] 
-    coffee=add_details_to_coffee(coffee, request.user)
-    coffee['date_added']=re.sub('\s\d{2}:\d{2}:\d{2}.\d{6}','',str(coffee['date_added']))
-    context = {
-        # "coffee_data":coffee_data,
-        # "like_data":like_data,
-        # "coffee_image":coffee_image,
-        # "coffee_slug":coffee_slug,
-        "review_form":review_form,
-        "comment_form":comment_form,
-        "review_and_comment":review_and_comment,
-        # "is_bookmarked":is_bookmarked,
-        "in_diary":check_coffee_in_diary(request.user.id, coffee_slug),
-        # 'average_rating':avg_rating,
-        # "review_count":rating_count,
-        "coffee":coffee
-    }
-    return render(request, 'coffee.html', context)
+    # try to load forms and data
+    try:
+        coffee = coffee_collection.find_one({"slug":slug})
+        review_form = ReviewForm()
+        comment_form = CommentForm()
+        
+        coffee_slug = coffee['slug']
+        reviews = Review.objects.filter(coffee_slug=slug).order_by('first_published')
+  
+        # build dictionary of dictionaries of review and comments
+        review_and_comment = [get_replies_and_comments(review, request.user) for review in reviews] 
+        coffee=add_details_to_coffee(coffee, request.user)
+        coffee['date_added']=re.sub('\s\d{2}:\d{2}:\d{2}.\d{6}','',str(coffee['date_added']))
+        context = {
+            "review_form":review_form,
+            "comment_form":comment_form,
+            "review_and_comment":review_and_comment,
+            "in_diary":check_coffee_in_diary(request.user.id, coffee_slug),
+            "coffee":coffee
+        }
+        return render(request, 'coffee.html', context)
+    # catch type error exception
+    except TypeError:
+        context={
+            "msg":"Unable to access this page"
+        }
+        return render(request, 'fail.html', context)
 
 # function to serve ajax requests to like comments/reviews/coffees
 def like_item(request, id):
@@ -721,7 +726,13 @@ def get_diary_id(request, title):
         return JsonResponse(context)
 @login_required
 def diary_entry(request, slug):
-    diary_entry = coffee_diary.find_one({"_id":ObjectId(slug)})
+    try:
+        diary_entry = coffee_diary.find_one({"_id":ObjectId(slug)})
+    except:
+        context={
+            "msg":"Diary entry doesn't exist"
+        }
+        return render(request, 'fail.html', context)
     if request.user.id==diary_entry["user_id"]:
         diary_html, suggestions=generate_diary_html(diary_entry, request)
         coffee = coffee_collection.find_one({"slug":diary_entry["coffeeSlug"]})
@@ -736,7 +747,10 @@ def diary_entry(request, slug):
             "test":test
         }
         return render(request, "diary_entry.html", context)
-    return render(request, "Invalid request")
+    context={
+        "msg":"Invalid Request"
+    }
+    return render(request, 'fail.html', context)
 
 def get_single_diary_entry(request, slug):
     diary_entry = dict(coffee_diary.find_one({"_id":ObjectId(slug)}))

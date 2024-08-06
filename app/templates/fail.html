@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% load static %}
+
+
+{% block content %}
+    <div class="fail-message-holder">
+        <p>{{msg}}</p>
+        <button><a href="{% url 'home' %}">Home</a></button>
+    </div>
+    
+{% endblock content %}
+    

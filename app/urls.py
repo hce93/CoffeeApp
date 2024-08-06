@@ -2,6 +2,8 @@ from django.urls import path
 from django.contrib.auth import views as auth_views
 from .forms import LoginForm
 from . import views
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('', views.index, name='home'),
@@ -37,3 +39,6 @@ urlpatterns = [
     path('faq/', views.faq, name='faq'),
     path('terms/', views.terms, name='terms'),
 ]
+
+if not settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

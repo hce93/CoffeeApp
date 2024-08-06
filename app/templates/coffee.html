@@ -128,6 +128,16 @@
             }
         })
         
+        
+        //refresh the page incase we have been directed back to this page after deleitng a review where no other reviews exist
+        window.addEventListener('pageshow', function(){
+            if (sessionStorage.getItem("refreshPreviousPage") === "true") {
+                // Remove the flag
+                sessionStorage.removeItem("refreshPreviousPage");
+                // Reload the page
+                window.location.reload();
+            }
+        });
     
     </script>
 {% endblock scripts %}

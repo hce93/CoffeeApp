@@ -320,6 +320,7 @@ p, a{
     justify-content: space-evenly;
     align-items: center;
     height:auto;
+    width:20%;
     min-width: 200px;
     padding:0 20px
 }
@@ -381,8 +382,14 @@ p, a{
     width:95vw;
     margin: 0 auto;
     display:flex;
-    justify-content: space-around;
     overflow:scroll
+}
+
+.recent-coffee-div{
+    justify-content: left;
+}
+.search-coffee-display, .search-review-display{
+    justify-content: space-around;
 }
 
 .popular-review-div, .recent-review-div, .recent-coffee-div{
@@ -396,7 +403,7 @@ p, a{
 .popular-review-div, .recent-review-div{
     /* width: 95vw;
     margin: 0 auto; */
-    height: auto;
+    height: fit-content;
     display: flex;
     flex-direction: row;
     /* overflow: scroll; */
@@ -404,16 +411,23 @@ p, a{
     border-radius: 30px; */
 }
 .recent-review-div>.review-div, .popular-review-div>.review-div{
-    width: max(20vw, 250px);
+    width: max(20%, 200px);
     height: inherit;
     flex-shrink: 0;
-    margin: 0 5px;
+    padding: 0 20px;
+    align-items: center;
+    /* margin: 0 5px; */
+    
 }
 .review-div>*{
     height:17%;
     display:flex;
     flex-direction: row;
+    text-align: center;
 
+}
+.popular-review-div>.review-div>a>.review-content, .recent-review-div>.review-div>a>.review-content{
+    height:3rem;
 }
 .review-div>.review-content{
     height:32%
@@ -439,7 +453,7 @@ p, a{
     flex-direction: row;
     justify-content: space-evenly;
     margin: 3vh auto;
-    height: max(35vh, 300px);
+    height: max(30vh, 300px);
     background-color: rgb(248, 250, 240);
     padding: 20px;
     border-radius: 50px;
@@ -455,7 +469,7 @@ p, a{
 
 .coffee-image>img{
     max-height:100%;
-    max-width:100%;
+    max-width:90%;
     border-radius: 20px;
 }
 
@@ -774,6 +788,14 @@ textarea{
 .profile-holder>*{
     margin: 10px 0;
 }
+.profile-holder>a{
+    display: flex;
+    width: 200px;
+    justify-content: center;
+}
+.profile-holder>a:hover{
+    text-decoration: none;
+}
 .sub-heading>span, .sub-heading>a{
     padding:0
 }
@@ -1062,6 +1084,31 @@ textarea{
     text-align: center;
     margin-top: 5px;
     color: gray;
+}
+
+.fail-message-holder{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    top: 15vh;
+    background-color: rgb(248, 250, 240);
+    width: 400px;
+    border-radius: 20px;
+    height: 100px;
+    align-self: center;
+}
+.fail-message-holder>button{
+    background: white;
+    margin: 5px 0;
+}
+
+#return-to-diary{
+    display:flex
+}
+#return-to-diary:hover{
+    text-decoration: none;
 }
 @media (max-width:1150px){
     #diary-entry{

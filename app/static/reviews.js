@@ -22,20 +22,21 @@ $(document).on('submit', '#review-form', function(event){
             var tempDiv
             new Promise(function(resolve){
                 tempContainer = createElement('div', null, 'review-container')
-                tempDiv=createElement('div', null, "review-div")
-                tempDiv.innerHTML = response.html
-                var rating_holder = tempDiv.querySelector('div.rating-holder')
+                tempContainer.innerHTML=response.html
+                // tempDiv=createElement('div', null, "review-div")
+                // tempDiv.innerHTML = response.html
+                var rating_holder = tempContainer.querySelector('div.rating-holder')
                 rating_holder.innerHTML=generateStars(rating_holder.getAttribute('rating'))
                 resolve()
             }).then(function(){
-                tempContainer.appendChild(tempDiv)
+                // tempContainer.appendChild(tempDiv)
             }).then(function(){
                 $form[0].parentNode.append(tempContainer)
 
                 // reset the review form
                 $form.closest('#review-form')[0].style.display="none"
                 content.val("")
-                $form.find('.avg_star').css("color","#ddd")
+                $form.find('.new_star').css("color","#ddd")
                 $form.closest('#review-form').siblings('#review-errors')[0].innerHTML=""
             }).then(function(){
                 //update stars for new rating
@@ -79,9 +80,11 @@ $(document).on('click', '.delete-review', function(event){
                 parent.remove()
                 // if currently on the single review page we redirect to the main page for the specific coffee
                 if(single_review_bool=="True"){
-                    var href=document.getElementById('return-to-coffee').href
-                    console.log(href)
-                    window.location.href=href
+                    console.log("Only review")
+                    // var href=document.getElementById('return-to-coffee').href
+                    // console.log(href)
+                    sessionStorage.setItem("refreshPreviousPage", "true");
+                    window.history.back()
                 }
                 resolve()
             }).then(function(){

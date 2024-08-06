@@ -4,7 +4,12 @@
     {% endif %}
     
     <p class="review-author"><span class="key">User</span>: {{author}}</p>    
-    <div class="review-content content no-hover">{{review.content|linebreaks}}</div>
+    
+    <a href="{% url 'review' review.id %}" title="View review" class="no-hover">
+        <div class="review-content content">{{review.content|linebreaks}}</div>
+    </a>
+
+    {% comment %} <div class="review-content content no-hover">{{review.content|linebreaks}}</div> {% endcomment %}
     <div class="rating-holder main-ratings" rating={{review.rating}} review_id={{review.id}}></div>
         <div class="review-action-box">
             

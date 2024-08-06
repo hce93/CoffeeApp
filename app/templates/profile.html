@@ -9,6 +9,7 @@
             
             {% if edit_access %}
                 <p>You have no bio</p>    
+                <a href="{% url 'edit_profile' slug=profile.slug%}">Create a bio here <span class="material-symbols-outlined">arrow_forward</span></a>
             {% else %}
                 <p>The user doesn't have a bio</p>
             {% endif %}
@@ -24,29 +25,33 @@
             
         {% endif %}
     </div>
-    
-    <h4 class="sub-heading">Your Likes<span class="material-symbols-outlined" id="user_likes">arrow_forward</span></h4>
-    <div class="recent-coffee-div">
-        {% for like in likes_list %}
-            {% include 'short_coffee_display_template.html' with coffee=like diary=True in_diary=like.in_diary%}
-        {% endfor %}
-    </div>
-
-
-    <h4 class="sub-heading">Your Saves<span class="material-symbols-outlined" id="user_bookmarks">arrow_forward</span></h4>
-    <div class="recent-coffee-div secondary-colour">
-        {% for bookmark in bookmark_coffees %}
-            {% include 'short_coffee_display_template.html' with coffee=bookmark diary=True in_diary=bookmark.in_diary%} 
-        {% endfor %}
-    </div>
-
-
-    <h4 class="sub-heading">Your Reviews<a class="material-symbols-outlined no-hover" href="{% url 'user_reviews' %}">arrow_forward</a></h4>
-    <div class="recent-review-div">
-    {% for item in user_reviews %}
-        {% include 'review_template.html' with author=item.author review=item.review comment_count=item.comment_count home=True title=item.title roaster=item.roaster like_count=item.like_count is_liked=item.is_liked%}
-    {% endfor %}
-    </div>
+    {% comment %} only show likes and saves if user is accessing their own profile {% endcomment %}
+    {% if edit_access %}
+        {% if likes_list %}
+            <h4 class="sub-heading">Your Likes<span class="material-symbols-outlined" id="user_likes">arrow_forward</span></h4>
+            <div class="recent-coffee-div">
+                {% for like in likes_list %}
+                    {% include 'short_coffee_display_template.html' with coffee=like diary=True in_diary=like.in_diary%}
+                {% endfor %}
+            </div>
+        {% endif %}
+        {% if bookmark_coffees %}
+            <h4 class="sub-heading">Your Saves<span class="material-symbols-outlined" id="user_bookmarks">arrow_forward</span></h4>
+            <div class="recent-coffee-div secondary-colour">
+                {% for bookmark in bookmark_coffees %}
+                    {% include 'short_coffee_display_template.html' with coffee=bookmark diary=True in_diary=bookmark.in_diary%} 
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endif %}
+    {% if user_reviews %}
+        <h4 class="sub-heading">{% if edit_access %}Your{% else %}{{username}}'s{% endif %} Reviews<a class="material-symbols-outlined no-hover" href="{% url 'user_reviews' %}">arrow_forward</a></h4>
+        <div class="recent-review-div">
+            {% for item in user_reviews %}
+                {% include 'review_template.html' with author=item.author review=item.review comment_count=item.comment_count home=True title=item.title roaster=item.roaster like_count=item.like_count is_liked=item.is_liked%}
+            {% endfor %}
+        </div>
+    {% endif %}
 {% endblock content %}
 
 {% block scripts %}

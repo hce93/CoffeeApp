@@ -23,7 +23,7 @@ function checkPath(){
     var maxLength = 200;
     var path = window.location.pathname
     if(path=="/" || path.includes("profile")){
-        maxLength=50
+        maxLength=30
     } else if(path.includes("user_reviews")){
         maxLength=100
     }
