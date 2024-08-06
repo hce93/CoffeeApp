@@ -49,11 +49,11 @@ function addDiaryElement(element=null){
         form.remove()
     //otherwise the user is adding a personal/bespoke diary element
     }else{
-        element = document.getElementById('diary_element').value        
+        element = document.getElementById('diary-element').value        
         //test if element is formatted
         const test_element_format = /^[a-zA-Z0-9\s]+$/.test(element)
         if (test_element_format){
-            element_type = document.getElementById('diary_element_type').value 
+            element_type = document.getElementById('diary-element-type').value 
         } else {
             alert("Please only enter characters or numbers")
             return
@@ -79,7 +79,7 @@ function addDiaryElement(element=null){
                 }
                 additions.push(formatted_element)
             }
-            document.getElementById('diary_element').value=""
+            document.getElementById('diary-element').value=""
         } else{
             alert("Diary already contains: " + element)
         }  
@@ -226,7 +226,6 @@ function removeDiaryElement(element){
         //check if no elements in diary and display message if so
         parent_div = document.getElementById('diary-form-input-div')
         console.log("Parent: ", parent_div)
-        console.log(parent_div.hasChildNodes())
         if(parent_div.children.length==0){
             message=document.createElement('p')
             message.setAttribute('id', 'to_remove')
@@ -243,13 +242,14 @@ function generateSuggestions(element_removed){
     console.log(element)
     //use id of previous element (which is the input element) as this has true id
         //id from button has _remove at end 
-    element_to_check=element.previousElementSibling.id
+    element_to_check=element.id
     console.log("Checking sugestions for: ", element_to_check)
     var elements_to_include={"roast_date":"date", "open_date":"date", "brew_method":"text",
     "grinder":"text", "grinder_setting":"text", "flavour_notes":"text"}
     console.log("printing element again: ", element)
     console.log("Additions: ", additions)
     keys = Object.keys(elements_to_include)
+    console.log("Keys: ", keys)
     if(keys.includes(element_to_check)){
         //generate a new element
         var form = document.createElement('form')

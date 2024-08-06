@@ -1,5 +1,6 @@
 <div class="long-coffee-display-holder">
     <div class="coffee-info">
+        <div class="coffee-text">
         <p><span class="title">{{coffee.title}}</span> - <span class="content">{{coffee.roaster}}</span></p>
         {% for key, value in coffee.items %}
             {% if key in 'title, roaster, image, slug, likes, avg_rating, count_rating, user_liked, in_diary, is_bookmarked, _id' %}
@@ -7,8 +8,9 @@
                 <p><span class="key">{{key}}</span>: <span class="value">{{value}}</span></p>
             {% endif %} 
         {% endfor %}
+        </div>
         <div>
-        <div class="action-box-holder justify-center">
+            <div class="action-box-holder justify-center">
                 {% include 'like_template.html' with is_liked=coffee.user_liked like_count=coffee.likes item=coffee.slug type="coffee" %}
                 {% if user.is_authenticated %}
                     {% if coffee.is_bookmarked  %}
@@ -37,4 +39,10 @@
     <div class="coffee-image">
         <img src="{{coffee.image}}">
     </div>
+    {% if coffee_link %}
+            <a href="{% url 'coffee' coffee.slug %}">View the coffee<span class="material-symbols-outlined">
+                arrow_forward
+                </span></a>
+        {% endif %}
+    
 </div>

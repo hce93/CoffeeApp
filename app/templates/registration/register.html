@@ -1,31 +1,33 @@
-<body>
-    <main>
-        <form method="POST">
-            {% csrf_token %}
-            <div>{{form.username}}</div>
-            {% if form.username.errors %}
-                <div>
-                    <p>{{form.username.errors.as_text}}</p>
-                </div>
-            {% endif %}
-            <div>{{form.email}}</div>
-            {% if form.email.errors %}
-                <div>
-                    <p>{{form.email.errors.as_text}}</p>
-                </div>
-            {% endif %}
-            <div>{{form.password1}}</div>
-            {% if form.password1.errors %}
-                <div>
-                    <p>{{form.password1.errors.as_text}}</p>
-                </div>
-            {% endif %}
-            <div>{{form.password2}}</div>
-            {% if form.password2.errors %}
-                <div>
-                    <p>{{form.password2.errors.as_text}}</p>
-                </div>
-            {% endif %}
-            <button>SIGN UP </button>
-    </main>
-</body>
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}    
+    <form method="POST" class="register-form">
+        {% csrf_token %}
+        <div>{{form.username}}</div>
+        {% if form.username.errors %}
+            <div>
+                <p>{{form.username.errors.as_text}}</p>
+            </div>
+        {% endif %}
+        <div>{{form.email}}</div>
+        {% if form.email.errors %}
+            <div>
+                <p>{{form.email.errors.as_text}}</p>
+            </div>
+        {% endif %}
+        <div>{{form.password1}}</div>
+        {% if form.password1.errors %}
+            <div>
+                <p>{{form.password1.errors.as_text}}</p>
+            </div>
+        {% endif %}
+        <div>{{form.password2}}</div>
+        {% if form.password2.errors %}
+            <div>
+                <p>{{form.password2.errors.as_text}}</p>
+            </div>
+        {% endif %}
+        <button>SIGN UP </button>
+    </form>
+{% endblock content %}

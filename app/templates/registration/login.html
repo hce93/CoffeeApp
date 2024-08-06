@@ -1,17 +1,21 @@
-<form action="{% url 'login' %}" method="post" class="form">
-    {% csrf_token %}
-    {% if form.non_field_errors %}
-        {% for error in form.non_field_errors %}
-            <p>{{error}}</p>
-        {% endfor %}
-    {% endif %}
-    <div>
+{% extends 'base.html' %}
+{% load static %}
+
+
+{% block content %}    
+    <form action="{% url 'login' %}" method="post" class="register-form">
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+            {% for error in form.non_field_errors %}
+                <p>{{error}}</p>
+            {% endfor %}
+        {% endif %}
         <div>
+
             {{form.username}}
-        </div>
-        <div>
             {{form.password}}
+
+            <button>Login</button>
         </div>
-        <button>Login</button>
-    </div>
-</form>
+    </form>
+{% endblock content %}

@@ -33,6 +33,7 @@ footer {
     min-height: 10vh;
     width: 100%;
 }
+
 .footer-content-div{
     margin: 0 5vw
 }
@@ -152,7 +153,12 @@ p, a{
 }
 
 #diary-entry{
-    display:flex
+    display:flex;
+    max-width: 1500px;
+    justify-content: center;
+    align-self: center;
+    width:100%;
+    min-width:1150px
 }
 .half{
     width:50%
@@ -217,7 +223,7 @@ p, a{
     #logout-button, #login-button{
         border:none;
         background-color: transparent;
-        color:rgb(42, 42, 42);
+        color: gray;
         padding:0
     }
     #top-banner > *{
@@ -293,9 +299,8 @@ p, a{
     .search-text{
         border: none;
         background-color: transparent;
-        width:90%;
-        margin: 1% 2% 1% 5%;
-        padding:0;
+        width:calc(100% - 25px);
+        padding: 5px 30px;
         font-size: 20px;
     }
     #play-pause-button{
@@ -314,7 +319,7 @@ p, a{
     flex-direction: column;
     justify-content: space-evenly;
     align-items: center;
-    height:100%;
+    height:auto;
     min-width: 200px;
     padding:0 20px
 }
@@ -330,18 +335,19 @@ p, a{
 .coffee-link{
     display: flex;
     flex-direction: column;
-    height:70%;
+    height:auto;
     align-items: center;
-    justify-content: space-between;
+    justify-content: start;
+    margin:10px 0
 }
 .coffee-link>p{
     text-align: center;
-    height:10%;
+    height:50px;
     color: gray;
 }
 
 .coffee-link>img{
-    height:80%;
+    height:150px;
     width: fit-content; 
     border-radius: 100px;
 }
@@ -369,7 +375,7 @@ p, a{
     text-overflow: ellipsis;
 }
 .recent-coffee-div, .search-coffee-display, .search-review-display{
-    height: max(30vh, 200px);
+    /* height: max(30vh, 200px); */
     padding-top: 15px;
     padding-bottom: 15px;
     width:95vw;
@@ -431,23 +437,35 @@ p, a{
 .long-coffee-display-holder{
     display: flex;
     flex-direction: row;
-    justify-content: space-around;
-    margin: 3vh 25vw;
+    justify-content: space-evenly;
+    margin: 3vh auto;
     height: max(35vh, 300px);
     background-color: rgb(248, 250, 240);
-    padding: 2vh;
+    padding: 20px;
     border-radius: 50px;
+    min-width: 460px;
+    max-width: 860px;
+    width:50vw
 }
+.coffee-image{
+    /* width:50%; */
+    align-content: center;
+    text-align: center;
+}
+
 .coffee-image>img{
-    height:100%;
+    max-height:100%;
+    max-width:100%;
     border-radius: 20px;
 }
+
 
 .coffee-info{
     display: flex;
     flex-direction: column;
     justify-content: space-evenly;
     align-items: center;
+    /* width: 50%; */
 }
 .title, .key{
     font-weight: bold;
@@ -499,6 +517,7 @@ p, a{
 
 .center{
     text-align: center;
+    align-self: center;
 }
 .line{
     display: inline-block;
@@ -510,7 +529,7 @@ p, a{
 .line::before, .line::after{
     background-color: gray;
     content: '\a0';
-    width: 45%;
+    width: calc(50% - 4rem);
     position: absolute;
     height: 1px;
     top: 50%;
@@ -564,13 +583,19 @@ textarea{
 #single-review-coffee{
     display: flex;
     flex-direction: column;
-    width: fit-content;
+    width: 400px;
     margin: 10px auto 30px auto;
     justify-content: center;
     text-align: center;
     padding: 20px 40px;
     background-color: rgb(248, 250, 240);
     border-radius: 50px;
+    height: 30vh;
+}
+
+#single-review-coffee>.coffee-image{
+    width:auto;
+    height:70%;
 }
 
 #single-review-coffee>h4{
@@ -598,30 +623,44 @@ textarea{
 /* search coffee page */
 
 
-.search-coffee-display, .search-review-display{
+/* .search-coffee-display, .search-review-display{
     justify-content: space-evenly;
     width: 80%;
     margin: 0 auto;
     border-radius: 50px;
     background-color: rgb(248,250,240);
+} */
+
+.search-coffee-display, .search-review-display {
+    justify-content: space-evenly;
+    width: 90%;
+    max-width: 90%;
+    margin: 0 auto;
+    border-radius: 50px;
+    background-color: rgb(248, 250, 240);
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
 }
+
 .search-bar-container, #search_field{
-    width: 50%;
+    width: 65%;
     border: 1px solid gray;
     border-radius: 20px;
     margin: 30px auto;
     display: flex;
     flex-direction: row;
     justify-content: space-around;
-    min-width: 500px;
+    min-width: 550px;
 }
 .search-bar-container>.search-bar{
-    width:70%
+    flex:1
 }
 .sort-contianer{
-    width: 25%;
+    width: 160px;
     border: none;
     border-left: 1px solid gray;
+    border-right: 1px solid gray;
     background-color: transparent;
     font-size: medium;
     color: gray;
@@ -635,6 +674,10 @@ textarea{
 }
 .search-bar-container>.search-bar>.search-text{
     font-size: medium;
+}
+
+.search-bar-container>*{
+    margin: 0 5px
 }
 .pagination>*{
     color: gray;
@@ -668,8 +711,11 @@ textarea{
 
 /* diary */
 #handsontable-container{
-    align-self: center;
+    /* align-self: center; */
     z-index: 1;
+    width: fit-content;
+    margin:0 auto
+    /* overflow: scroll; */
 }
 .asterisk{
     font-size: 10px;
@@ -680,7 +726,8 @@ textarea{
     width:40%
 }
 .diary-search-bar>.search-bar{
-    width:80%
+    width:80%;
+    justify-content: left;
 }
 #reset_button{
     background-color: transparent;
@@ -742,20 +789,291 @@ textarea{
     justify-content: space-evenly;
     align-items: center;
     height: auto;
-    min-width: 200px;
+    width: 200px;
     padding: 0 10px;
     min-height: 200px;
     height:250px
 }
 
 .search-review-display>.review-div>*{
-    height:10%;
+    /* height:10%; */
     width:max(20vw, 250px);
     max-width: 100%;
+    padding:10px;
 }
 .search-review-display>.review-div>.review-content{
     height:70%;
     display: flex;
     flex-direction: column;
     overflow:scroll
+}
+.pagination-selector{
+    width: 150px;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+.pagination-selector>.sort-contianer{
+    border:none;
+    width:auto;
+}
+.pagination-selector>span{
+    color: gray;
+}
+
+/* coffee form */
+#coffee-form, #coffee-element-form, #diary-form, #diary-element-form, .register-form{
+    display: flex;
+    flex-direction: column;
+    width: 50%;
+    background-color: rgb(248, 250, 240);
+    border-radius: 30px;
+    padding: 40px;
+    align-self: center;
+    align-items: center;
+    min-width: 590px;
+    margin:20px 0
+}
+#coffee-form-input-div, #diary-form-input-div{
+    width:80%
+}
+#coffee-form-input-div>*, #diary-form-input-div>*{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin:5px;
+    color: gray;
+}
+#coffee-form-input-div>div>input, #diary-form-input-div>div>input{
+    border-radius: 30px;
+    border:1px solid grey;
+    padding: 0 10px;
+    color: gray;
+    width:200px
+}
+
+#coffee-form-input-div>div>#id_image{
+    border:none;
+    font-size: small;
+    align-self: center;
+}
+#coffee-form>button, #coffee-element-form>button, #diary-element-form>button{
+    background-color: white;
+    color: gray;
+}
+#coffee-element-form, #diary-element-form{
+    flex-direction: column;
+}
+#coffee-element-form>div, #diary-element-form>div{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    color: gray;
+    align-items: center;
+    margin: 10px 0
+}
+#diary-element-form>div{
+    width:100%
+}
+#coffee-element-form>div{
+    width:80%
+}
+#coffee-element-form>div>div>#coffee-element, #coffee-element-form>div>div>select,
+#diary-element-form>div>div>#diary-element, #diary-element-form>div>div>select{
+    border-radius: 30px;
+    border:1px solid grey;
+    padding: 0 10px;
+    height: 32px;
+    color: gray
+}
+
+#extra_fields>div{
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    justify-content: space-between;
+}
+#extra_fields>div>label{
+    flex:1
+}
+#extra_fields>div>input{
+    width:200px;
+    border-radius: 30px;
+    color: gray;
+    border:1px solid gray;
+    position: relative;
+    left:25px;
+    padding: 0 10px
+}
+#extra_fields>div>span{
+    width:25px;
+    padding:0;
+    position: relative;
+    left: 25px;
+    align-self: center;
+}
+
+#diary-form{
+    width:80%;
+    min-width:550px;
+    margin:20px auto
+}
+.diary-input{
+    display:flex;
+    flex-direction: row;
+    width:100%;
+    align-items: center;
+}
+.diary-input>input{
+    width:200px
+}
+.diary-input>span{
+    width:25px
+}
+.diary-input>label{
+    flex:1
+}
+#diary-form>button{
+    background-color: white;
+    border: none;
+    color: gray;
+}
+#suggested-elements{
+    display: flex;
+    flex-direction: column;
+    width: 80%;
+    margin: 20px auto;
+    background-color: rgb(248, 250, 240);
+    border-radius: 30px;
+    padding: 40px;
+    align-items: center;
+    color: gray;
+    min-width: 550px;
+}
+#suggested-elements>form{
+    width:80%;
+    display:flex;
+    flex-direction:row;
+    justify-content: space-between;
+    color: gray;
+    margin:5px 0
+}
+
+#suggested-elements>form>button{
+    background-color: white;
+    border: none;
+    color: gray;
+}
+#diary-element-form{
+    min-width: 550px;
+    width:80%;
+    margin: 20px auto;
+    color: gray;
+}
+
+#diary-entry>#coffee>*{
+    margin:20px auto !important;
+    width:80%;
+    min-width:550px;
+}
+#diary-entry>#coffee>.long-coffee-display-holder{
+    min-height: 400px;
+}
+#diary-entry>#coffee>.long-coffee-display-holder>.coffee-image>img{
+    max-height:400px;
+    max-width: 100%;
+    height:80%
+}
+#diary-entry>#coffee>.long-coffee-display-holder>.coffee-image{
+    align-content: center;
+    width: 50%;
+}
+
+#pagination_text{
+    width:50%
+}
+#pagination_previous_holder, #pagination_next_holder{
+    width:25%
+}
+#diary>h3{
+    text-align: center;
+    color: gray;
+}
+
+.half>.long-coffee-display-holder{
+    /* position:fixed; */
+    /* width:40% !important; */
+    /* left:55%; */
+    flex-wrap: wrap;
+}
+
+.half>.long-coffee-display-holder>.coffee-info, .half>.long-coffee-display-holder>.coffee-image{
+    width:50%;
+    /* height:92%; */
+    padding:0 5%
+}
+.half>.long-coffee-display-holder>a{
+    display: flex;
+    justify-content: center;
+    width: 180px;
+    text-align: center;
+}
+.half>.long-coffee-display-holder>a:hover{
+    text-decoration: none;
+}
+#coffee>.long-coffee-display-holder{
+    height:auto
+}
+.coffee-text{
+    overflow: scroll;
+    text-align: center;
+}
+
+/* login/register */
+.register-form{
+    margin: auto;
+    width: 500px !important;
+    min-width: auto;
+    align-items: center;
+    position: absolute;
+    top:25%
+}
+.register-form>div>input{
+    border-radius: 20px;
+    border: 1px solid gray;
+    width:250px;
+    margin: 2px 0;
+    padding: 0 15px;
+    color: gray;
+}
+.register-form>div{
+    padding:2px 0
+}
+.register-form>div{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.register-form>div>button, .register-form>button{
+    border-radius: 20px;
+    background-color: white;
+    width:130px;
+    text-align: center;
+    margin-top: 5px;
+    color: gray;
+}
+@media (max-width:1150px){
+    #diary-entry{
+        flex-direction: column;
+        min-width: 0;
+        align-items: center;
+    }
+    .half{
+        width:100%;
+    }
+    #suggested-elements>form{
+        width:60%
+    }
+
 }

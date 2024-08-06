@@ -157,7 +157,8 @@ def all_coffees(request):
     sort = partial(sort_function, sort_by=sort_query)
     sorted_coffees=sorted(coffees_with_info, key=sort, reverse=sort_rule)
     
-    paginator=Paginator(sorted_coffees, per_page=5)
+    per_page = request.GET.get('per_page') if request.GET.get('per_page') else 5
+    paginator=Paginator(sorted_coffees, per_page=per_page)
     page = request.GET.get('page', default=1)
     try:
         items = paginator.get_page(number=page)
@@ -190,6 +191,7 @@ def all_coffees(request):
         "search_query":search_query,
         "coffees":items,
         "sort_order":sort_request,
+        "items_per_page":str(per_page)
     }
     return render(request, 'all_coffees.html', context)
 
@@ -679,7 +681,7 @@ def clean_diary_keys(diary):
     return diary
 
 def generate_diary_html(diary, request):
-    ignore = ["_id", "user_id", "coffeeID", "coffeeSlug"]
+    ignore = ["_id", "user_id", "coffeeID", "coffeeSlug", "last_update"]
     include={"roast_date":"date", "open_date":"date", "brew_method":"text",
              "grinder":"text", "grinder_setting":"text", "flavour_notes":"text"}
     html=""
@@ -717,7 +719,7 @@ def get_diary_id(request, title):
         }
         
         return JsonResponse(context)
-
+@login_required
 def diary_entry(request, slug):
     diary_entry = coffee_diary.find_one({"_id":ObjectId(slug)})
     if request.user.id==diary_entry["user_id"]:
@@ -954,8 +956,8 @@ def user_reviews(request):
                 return element[sort_by]
     sort = partial(sort_function, sort_by=sort_query)
     sorted_coffees=sorted(reviews_updated, key=sort, reverse=sort_rule)
-    print(sorted_coffees)
-    paginator=Paginator(sorted_coffees, per_page=5)
+    per_page = request.GET.get('per_page') if request.GET.get('per_page') else 5
+    paginator=Paginator(sorted_coffees, per_page=per_page)
     page = request.GET.get('page', default=1)
     try:
         items = paginator.get_page(number=page)
@@ -964,7 +966,8 @@ def user_reviews(request):
     context={
         "reviews":items,
         "sort_order":sort_request,
-        "search_query":search_query
+        "search_query":search_query,
+        "items_per_page":str(per_page)
     }
     return render(request, 'user_reviews.html', context)
 

@@ -1,9 +1,12 @@
 from django.urls import path
+from django.contrib.auth import views as auth_views
+from .forms import LoginForm
 from . import views
 
 urlpatterns = [
     path('', views.index, name='home'),
     path('register/', views.register_user, name='register'),
+    path('login/', auth_views.LoginView.as_view(authentication_form=LoginForm), name='login'),
     path('profile/<slug:slug>', views.user_profile, name='profile'),
     path('edit_profile/<slug:slug>', views.edit_profile, name='edit_profile'),
     path('coffee_form', views.coffee_form, name='coffee_form'),

@@ -7,15 +7,14 @@
 {% endblock head %}
     
 {% block content %}
-{% comment %} {% include 'long_coffee_display_template.html' with coffee=coffee diary=True %} {% endcomment %}
-    <a id="return-to-coffee" class="no-hover" href="{% url 'coffee' review.review.0.coffee_slug %}">
+    <a id="return-to-coffee" class="no-hover" onclick="history.back()">
         <span class="material-symbols-outlined">arrow_back</span>
-        Back to coffee
+        Back
     </a>
     <div id="single-review-coffee">
         <h4>{{coffee_title}} - {{coffee_roaster}}</h4>
         <div class="coffee-image">
-            <img src="{{coffee_image}}" style="max-height:150px"/>
+            <img src="{{coffee_image}}"/>
         </div>
     </div>
     <div class="review-container">

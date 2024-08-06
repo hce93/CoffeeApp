@@ -5,10 +5,10 @@ function addElement(){
     var server_name;
     var form=document.getElementById('coffee-form-input-div')
 
-    display_name=document.getElementById('coffee_element').value
+    display_name=document.getElementById('coffee-element').value
     const test_format = /^[a-zA-Z0-9\s]+$/.test(display_name)
         if (test_format){
-            type = document.getElementById('coffee_element_type').value 
+            type = document.getElementById('coffee-element-type').value 
         } else {
             alert("Please only enter characters or numbers")
             return
@@ -19,7 +19,7 @@ function addElement(){
     form.appendChild(html)
 
     // remove text from input form
-    document.getElementById('coffee_element').value=""
+    document.getElementById('coffee-element').value=""
 }
 
 // function generateElementHTML(element, type, display_name=null){

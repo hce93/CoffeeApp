@@ -6,6 +6,12 @@ document.getElementById('sort-options').addEventListener('change', function(){
     updateHref('sort', sort_query, srule)
 })
 
+//items per page functionality
+document.getElementById('items-per-page-options').addEventListener('change', function(){
+    const per_page=this.value
+    updateHref('per_page', per_page)
+})
+
 // search functionality
 document.getElementById('search-form').addEventListener('submit', function(){
     event.preventDefault()
@@ -28,5 +34,6 @@ function updateHref(element, query, desc=0){
     if(element != 'page'){
         params.set('page',1)
     }
+    // params.set('per_page', per_page)
     window.location.href=`?${params}`
 }

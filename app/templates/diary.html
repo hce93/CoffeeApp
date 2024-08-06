@@ -41,7 +41,7 @@
     </div>
     <div class="controls-container">
         <div class="controls">
-            <input id="search_field" type="search" placeholder="Search diary...">
+            <input id="search_field" type="search" placeholder="Filter diary...">
         </div>
         <output class="console" id="output">0 results</output>
     </div>
@@ -58,9 +58,11 @@
         <div class="search-coffee-container search-coffee-display" id="coffee_search"></div>
     </div>
     <div class="pagination" id="pagination_holder">
-        <span class="step-links" id="pagination_previous_holder"></span>
-        <span id="pagination_text"></span>
-        <span class="step-links" id="pagination_next_holder"></span>
+        <span class="step-links">
+            <span id="pagination_previous_holder"></span>
+            <span id="pagination_text"></span>
+            <span id="pagination_next_holder"></span>
+        </span>
     </div>
 {% endblock content %}
             

@@ -15,15 +15,19 @@
         <button>Submit</button>
     </form>
 
-    <h4>Add a new feature...</h4>
-    <form id="coffee_element_form">
-        <label for="coffee_element">New Element:</label>
-        <input type="text" id="coffee_element" name="coffee_element">
-        <select name="data-type" id="coffee_element_type">
-            <option value="text">Text</option>
-            <option value="date">Date</option>
-            <option value="number">Number</option>
-        </select>
+    <h4 class="sub-heading center">Add a new feature...</h4>
+    <form id="coffee-element-form">
+        <div>
+            <label for="coffee-element">New Element:</label>
+            <div>
+                <input type="text" id="coffee-element" name="coffee_element" placeholder="Name...">
+                <select name="data-type" id="coffee-element-type">
+                    <option value="text">Text</option>
+                    <option value="date">Date</option>
+                    <option value="number">Number</option>
+                </select>
+            </div>
+        </div>
         <button onclick="addElement()">Add</button>
     </form>
 {% endblock content %}

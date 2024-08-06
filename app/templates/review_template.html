@@ -19,7 +19,12 @@
                 {% else %}
                     {% include 'like_template.html' with item=review.id type="review" is_liked=false like_count=0 %}
                 {% endif %}
-                <button onclick="toggleDiv(this)" class="btn">
+                
+                {% if user.is_authenticated %}
+                    <button onclick="toggleDiv(this)" class="btn">
+                {% else %}
+                    <button class="btn">
+                {% endif %}
                     <i class="fa-regular fa-comment"></i>
                     <span class="comment-count">{{comment_count}}</span>
                 </button>

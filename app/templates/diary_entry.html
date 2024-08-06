@@ -30,21 +30,26 @@
             </form>
         {% endfor %}
         </div>
-        <h4>Or add your own...</h4>
-        <form id="diary_element_form">
-            <label for="diary_element">New Element:</label>
-            <input type="text" id="diary_element" name="diary_element">
-            <select name="data-type" id="diary_element_type">
-                <option value="date">Date</option>
-                <option value="text">Text</option>
-                <option value="number">Number</option>
-            </select>
+        
+        <form id="diary-element-form">
+            <h4>Add your own...</h4>
+            <div>
+                <label for="diary-element">New Element:</label>
+                <div>
+                    <input type="text" id="diary-element" name="diary-element" placeholder="Name...">
+                    <select name="data-type" id="diary-element-type">
+                        <option value="date">Date</option>
+                        <option value="text">Text</option>
+                        <option value="number">Number</option>
+                    </select>
+                </div>
+                
+            </div>
             <button onclick="addDiaryElement()">Add</button>
         </form>
     </div>
     <div id="coffee" class="half">
-        {% include 'long_coffee_display_template.html' with coffee=coffee%}
-        <a href="{% url 'coffee' coffee.slug %}">View the coffee</a>
+        {% include 'long_coffee_display_template.html' with coffee=coffee coffee_link=True%}
     </div>
 </div>
 

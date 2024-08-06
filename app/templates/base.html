@@ -35,10 +35,9 @@
                         <button id="logout-button" type="submit" class="material-symbols-outlined">logout</button>
                     </form>
                 {% else %}
-                    <form method="get" action="{% url 'login' %}">
-                        {% csrf_token %}
+                    <a href="{% url 'login' %}">
                         <button id="login-button" type="submit" class="material-symbols-outlined">login</button>
-                    </form>
+                    </a>
                 {% endif %}
             </div>
         </header>
@@ -67,8 +66,9 @@
                     </form>
                     {% else %}
                     <li><a href="{% url 'login' %}">Login</a></li>
-                    {% endif %}
                     <li><a href="{% url 'register' %}">Register</a></li>
+                    {% endif %}
+                    
                 </ul>
             </div>
         </footer>
