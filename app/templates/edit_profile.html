@@ -2,9 +2,27 @@
 {% load static %}
 
 {% block content %}
-    <form method="post" enctype="multipart/form-data">
+    <form method="post" enctype="multipart/form-data" id="profile-form">
         {% csrf_token %}
-        {{form}}
-        <button>Submit</button>
+        <div id="profile-form-input-div">
+            <div id="profile-image-holder">
+            
+                <label for="id_profile_image"><img class="profile-image" src="{{profile.profile_image.url}}" id="current_profile_image"></label>
+                <input type="file" name="profile_image" accept="image/*" id="id_profile_image" user="{{profile.user.username}}" style="display:none">
+            </div>
+            {{form.bio}}
+            <button>Submit</button>
+        </div>
     </form>
 {% endblock content %}
+
+
+{% block scripts %}
+    <script>
+        var edit_profile_url="{% url 'edit_profile' 1 %}".replace("1","");
+        var csrfToken = "{{ csrf_token }}";
+    </script>   
+    <script src="{% static 'edit-profile.js' %}"></script>
+    
+{% endblock scripts %}
+    

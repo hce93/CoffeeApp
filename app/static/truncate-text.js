@@ -25,7 +25,7 @@ function checkPath(){
     if(path=="/" || path.includes("profile")){
         maxLength=30
     } else if(path.includes("user_reviews")){
-        maxLength=100
+        maxLength=60
     }
     return maxLength;
 }

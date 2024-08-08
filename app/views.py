@@ -20,6 +20,8 @@ from django.contrib.auth.decorators import permission_required, login_required
 from django.core.paginator import Paginator, EmptyPage
 from functools import partial
 import re
+import os
+from django.utils.datastructures import MultiValueDictKeyError
 
 def index(request):
     # top 5 highest rated coffees
@@ -267,22 +269,46 @@ def user_profile(request, slug):
 def edit_profile(request, slug):
     user = request.user
     profile =  Profile.objects.get(slug=slug)
+    current_image=str(profile.profile_image).replace('images/', '')
     if profile.user_id==user.id:
         if request.method=="POST":
-            print(request.FILES)
             form=ProfileForm(request.POST, request.FILES, instance=profile)
             if form.is_valid():
+                # delete old image if changed
+                try:
+                    new_image=request.FILES['profile_image']
+                    if current_image!=new_image:
+                        delete_image(current_image)
+                except MultiValueDictKeyError:
+                    print("Image isnt changing")
+                # save new profile
                 profile = form.save()
-                return HttpResponseRedirect(reverse('profile', args=[slug]))
+                print("FILES: ", request.POST)
+                # if image changed send url back so image can be updated on the page
+                if request.POST.get('image_change', False):
+                    return JsonResponse({"image_url":profile.profile_image.url})
+                # if bio changed return the user to the original profile page
+                else:
+                    return HttpResponseRedirect(reverse('profile', args=[slug]))
         else: 
             form = ProfileForm(instance=profile)
             context={
-                "form":form
+                "form":form,
+                "profile":profile
+                # "profile":profile
             }
+            # print("FORM: ", form)
             return render(request, 'edit_profile.html', context)
     else:
         return HttpResponseRedirect(reverse('profile', args=[slug]))
     
+def delete_image(location):
+    path='upload/images/'+location
+    
+    if os.path.isfile(path):
+        print("Found the file")
+        os.remove(path)
+
 def logout_view(request):
     logout(request)    
     return render(request, 'registration/logged_out.html')

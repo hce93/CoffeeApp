@@ -42,7 +42,7 @@
             <div class="review-div">
                 <p class="review-author"><span class="key">User</span>: {{review.review.0.author}}</p>    
                 <a href="{% url 'review' review.review.0.id %}" title="View review" class="no-hover">
-                    <div class="review-content content">{{review.review.0.content|linebreaks}}</div>
+                    <div class="review-content content left">{{review.review.0.content|linebreaks}}</div>
                 </a>
                 <div class="rating-holder main-ratings" rating={{review.review.0.rating}} review_id={{review.review.0.id}} ></div>
                 <div class="action-box-holder">

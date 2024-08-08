@@ -6,7 +6,12 @@
     <p class="review-author"><span class="key">User</span>: {{author}}</p>    
     
     <a href="{% url 'review' review.id %}" title="View review" class="no-hover">
-        <div class="review-content content">{{review.content|linebreaks}}</div>
+        {% if review_page %}
+            <div class="review-content content left">{{review.content|linebreaks}}</div>
+        {% else %}
+            <div class="review-content content">{{review.content|linebreaks}}</div>
+        {% endif %}
+        
     </a>
 
     {% comment %} <div class="review-content content no-hover">{{review.content|linebreaks}}</div> {% endcomment %}

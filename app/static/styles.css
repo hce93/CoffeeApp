@@ -88,7 +88,9 @@ main>*{
 p, a{
     color: gray !important;
 }
-
+.pointer{
+    cursor: pointer;
+}
 .material-symbols-outlined{
     cursor: pointer;
     padding-left: 1%;
@@ -251,10 +253,11 @@ p, a{
         font-size: 20px;
         font-family: 'Font Awesome 6 Free';
         color: gray;
-        margin:0;
-        padding: 15px 0 0 2.5vw;
+        margin:0 auto;
+        padding: 15px 0 15px 2.5vw;
         display: flex;
         flex-direction: row;
+        width:min(95vw, 2000px)
     }
     .video-holder{
         width:100%;
@@ -398,6 +401,7 @@ p, a{
     overflow: scroll;
     padding:20px;
     border-radius: 30px;
+    max-width: 2000px;
 }
 
 .popular-review-div, .recent-review-div{
@@ -432,11 +436,6 @@ p, a{
 .review-div>.review-content{
     height:32%
 }
-
-/* .review-action-box{
-    display:flex;
-    align-items: center;
-} */
 
 .secondary-colour{
     /* background-color: rgba(160, 117, 85, 0.459); */
@@ -648,7 +647,7 @@ textarea{
 .search-coffee-display, .search-review-display {
     justify-content: space-evenly;
     width: 90%;
-    max-width: 90%;
+    max-width: 2000px;
     margin: 0 auto;
     border-radius: 50px;
     background-color: rgb(248, 250, 240);
@@ -811,23 +810,34 @@ textarea{
     justify-content: space-evenly;
     align-items: center;
     height: auto;
-    width: 200px;
+    width: 20%;
     padding: 0 10px;
     min-height: 200px;
-    height:250px
+    min-width: 230px;
+}
+
+.search-review-display>.review-div>.review-author,
+.search-review-display>.review-div>.rating-holder,
+.search-review-display>.review-div>.review-action-box{
+    height:12%
 }
 
 .search-review-display>.review-div>*{
-    /* height:10%; */
+    height:25%;
     width:max(20vw, 250px);
     max-width: 100%;
-    padding:10px;
+    text-align: left;
+    /* padding:10px; */
 }
-.search-review-display>.review-div>.review-content{
-    height:70%;
+.search-review-display>.review-div>a>.review-content{
+    height:100%;
     display: flex;
     flex-direction: column;
-    overflow:scroll
+    overflow:scroll;
+}
+.search-review-display>.review-div>a:nth-of-type(2){
+    flex:1;
+    text-align: left;
 }
 .pagination-selector{
     width: 150px;
@@ -845,7 +855,7 @@ textarea{
 }
 
 /* coffee form */
-#coffee-form, #coffee-element-form, #diary-form, #diary-element-form, .register-form{
+#coffee-form, #coffee-element-form, #diary-form, #diary-element-form, .register-form, #profile-form{
     display: flex;
     flex-direction: column;
     width: 50%;
@@ -1110,6 +1120,45 @@ textarea{
 #return-to-diary:hover{
     text-decoration: none;
 }
+#profile-form-input-div{
+    display:flex;
+    flex-direction: column;
+    color: gray;
+    width:85%;
+    align-items: center;
+}
+#profile-form-input-div>button{
+    width:200px;
+    background-color: white;
+    border-radius: 20px;
+    align-self: center;
+    margin-top: 20px
+}
+.profile-image{
+    height: 230px;
+    border-radius: 50px;
+}
+#profile-form-input-div>textarea{
+    width:90%;
+    padding: 5px 10px;
+    border: 1px solid gray
+}
+/* #profile-form-input-div>#profile-image-holder{
+
+} */
+#profile-image-holder>label{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 230px;
+    overflow: hidden;
+    margin: 10px 0
+}
+#profile-image-holder>label>img:hover{
+    cursor: pointer;
+}
+
+
 @media (max-width:1150px){
     #diary-entry{
         flex-direction: column;
@@ -1123,4 +1172,8 @@ textarea{
         width:60%
     }
 
+}
+
+.left{
+    text-align: left !important;
 }
