@@ -1,4 +1,5 @@
 <div class="comment-div" value={{comment.0.id}}>
+    <p class="review-author"><a href="{% url 'profile' comment.0.author.username %}"><span class="key">User</span>: {{comment.0.author.username}}</a></p>    
     <p class="content">{{comment.0.content}}</p>
     
             
@@ -9,11 +10,11 @@
                     <i class="fa-regular fa-comment deleted"></i>
                 </button>
             {% else %}
-            {% if user.is_authenticated %}
-                <button onclick="toggleDiv(this)" class="btn comment" title="Add comment">
-            {% else %}
-                <button class="btn comment">
-            {% endif %}
+                {% if user.is_authenticated %}
+                    <button onclick="toggleDiv(this)" class="btn comment" title="Add comment">
+                {% else %}
+                    <button class="btn comment">
+                {% endif %}
                     <i class="fa-regular fa-comment"></i>
                 </button>
                 {% if comment.3 %}

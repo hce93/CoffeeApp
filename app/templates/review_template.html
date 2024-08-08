@@ -3,7 +3,7 @@
         <a href="{% url 'review' review.id %}" class="key" title="view the review">{{title}} - {{roaster}}</a>
     {% endif %}
     
-    <p class="review-author"><span class="key">User</span>: {{author}}</p>    
+    <p class="review-author"><a href="{% url 'profile' author %}"><span class="key">User</span>: {{author}}</a></p>    
     
     <a {% if not review_page %}href="{% url 'review' review.id %}"{% endif %} title="View review" class="no-hover">
         {% if review_page %}

@@ -40,7 +40,7 @@
 
         <div class="review-container">
             <div class="review-div">
-                <p class="review-author"><span class="key">User</span>: {{review.review.0.author}}</p>    
+                <p class="review-author"><a href="{% url 'profile' review.review.0.author %}"><span class="key">User</span>: {{review.review.0.author}}<a></p>    
                 <a href="{% url 'review' review.review.0.id %}" title="View review" class="no-hover">
                     <div class="review-content content left">{{review.review.0.content|linebreaks}}</div>
                 </a>

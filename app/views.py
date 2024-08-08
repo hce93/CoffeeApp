@@ -234,6 +234,7 @@ def user_profile(request, slug):
                 "msg":"The user doesn't exist"
             }
             return render(request, 'fail.html', context)
+        
         username = User.objects.get(profile = user_profile).username
         edit_access = True if user_profile.user_id==request.user.id else False
         
@@ -248,7 +249,7 @@ def user_profile(request, slug):
         for x in range(len(bookmark_coffees)):
             bookmark_coffees[x]=add_details_to_coffee(bookmark_coffees[x], request.user)
         
-        user_reviews = Review.objects.filter(author_id=request.user.id)[0:5]
+        user_reviews = Review.objects.filter(author_id=user_profile.user_id)[0:5]
         user_reviews = generate_review_info(user_reviews, User.objects.get(username=request.user))
     
         context = {

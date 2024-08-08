@@ -259,6 +259,19 @@ p, a{
         flex-direction: row;
         width:min(95vw, 2000px)
     }
+    .heading-holder{
+        width: min(95vw, 2000px);
+        margin: auto;
+    }
+    .heading-holder>a{
+        display: block;
+        width: fit-content;
+        margin: 15px 0 0 2.5vw;
+    }
+    .heading-holder>a>.sub-heading{
+        width:auto;
+        padding:0;
+    }
     .video-holder{
         width:100%;
         height:100%;
@@ -1163,6 +1176,15 @@ textarea{
 #to_remove{
     justify-content: center;
     margin-bottom: 10px !important;
+}
+
+.heading-holder{
+    width: min(95vw, 2000px);
+    margin: auto;
+}
+.heading-holder>a{
+    display: block;
+    width: fit-content;
 }
 @media (max-width:1150px){
     #diary-entry{
