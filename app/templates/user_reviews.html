@@ -33,7 +33,7 @@
             {% include 'review_template.html' with author=item.author review=item.review comment_count=item.comment_count home=True title=item.title roaster=item.roaster like_count=item.like_count is_liked=item.is_liked %}
         {% endfor %}
         {% else %}
-            <p>You have no reviews</p>
+            <p>No reviews returned</p>
         {% endif %}
     </div>
     

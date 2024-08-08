@@ -254,7 +254,7 @@ p, a{
         font-family: 'Font Awesome 6 Free';
         color: gray;
         margin:0 auto;
-        padding: 15px 0 15px 2.5vw;
+        padding: 15px 0 0 2.5vw;
         display: flex;
         flex-direction: row;
         width:min(95vw, 2000px)
@@ -1106,7 +1106,7 @@ textarea{
     background-color: rgb(248, 250, 240);
     width: 400px;
     border-radius: 20px;
-    height: 100px;
+    height: 150px;
     align-self: center;
 }
 .fail-message-holder>button{

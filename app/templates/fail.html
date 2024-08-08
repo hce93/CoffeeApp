@@ -5,6 +5,7 @@
 {% block content %}
     <div class="fail-message-holder">
         <p>{{msg}}</p>
+        <button><a href="{% url 'login' %}">Login</a></button>
         <button><a href="{% url 'home' %}">Home</a></button>
     </div>
     

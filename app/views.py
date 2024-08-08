@@ -262,7 +262,7 @@ def user_profile(request, slug):
         return render(request, 'profile.html', context)
     else:
         context={
-            "msg":"You need to log in to access this page"
+            "msg":"You need to login to access this page"
         }
         return render(request, 'fail.html', context)
 
@@ -974,42 +974,52 @@ def review(request, id):
     return render(request, 'single_review.html', context)  
 
 def user_reviews(request):
-    search_query= request.GET.get('search') if request.GET.get('search') else ""
-    # reviews = Review.objects.filter(author_id=request.user.id)
-    reviews = Review.objects.filter(
-        Q(author_id=request.user.id) & Q(coffee_slug__icontains=search_query)
-    )
-    reviews_updated=generate_review_info(reviews, User.objects.get(username=request.user))
-    
-    # sort order according to what the user has selected
-    sort_request = request.GET.get('sort', default='rating_desc')
-    sort_query = re.sub('_asc|_desc','',sort_request)
-    sort_rule = bool(re.search('desc',sort_request))
-    
-    def sort_function(element, sort_by):
+    if request.user.is_authenticated:
+        search_query= request.GET.get('search') if request.GET.get('search') else ""
+        # reviews = Review.objects.filter(author_id=request.user.id)
         try:
-            return element[sort_by]
-        except KeyError:
+            author= User.objects.get(username=request.GET.get('user')) if request.GET.get('user') else request.user
+            reviews = Review.objects.filter(
+                Q(author_id=author.id) & Q(coffee_slug__icontains=search_query)
+            )
+            reviews_updated=generate_review_info(reviews, User.objects.get(username=request.user))
+        except User.DoesNotExist:
+            reviews_updated=[]
+        
+        # sort order according to what the user has selected
+        sort_request = request.GET.get('sort', default='rating_desc')
+        sort_query = re.sub('_asc|_desc','',sort_request)
+        sort_rule = bool(re.search('desc',sort_request))
+        
+        def sort_function(element, sort_by):
             try:
-                return getattr(element['review'],sort_by)
-            except AttributeError:
                 return element[sort_by]
-    sort = partial(sort_function, sort_by=sort_query)
-    sorted_coffees=sorted(reviews_updated, key=sort, reverse=sort_rule)
-    per_page = request.GET.get('per_page') if request.GET.get('per_page') else 5
-    paginator=Paginator(sorted_coffees, per_page=per_page)
-    page = request.GET.get('page', default=1)
-    try:
-        items = paginator.get_page(number=page)
-    except EmptyPage:
-        items=[]
-    context={
-        "reviews":items,
-        "sort_order":sort_request,
-        "search_query":search_query,
-        "items_per_page":str(per_page)
-    }
-    return render(request, 'user_reviews.html', context)
+            except KeyError:
+                try:
+                    return getattr(element['review'],sort_by)
+                except AttributeError:
+                    return element[sort_by]
+        sort = partial(sort_function, sort_by=sort_query)
+        sorted_coffees=sorted(reviews_updated, key=sort, reverse=sort_rule)
+        per_page = request.GET.get('per_page') if request.GET.get('per_page') else 5
+        paginator=Paginator(sorted_coffees, per_page=per_page)
+        page = request.GET.get('page', default=1)
+        try:
+            items = paginator.get_page(number=page)
+        except EmptyPage:
+            items=[]
+        context={
+            "reviews":items,
+            "sort_order":sort_request,
+            "search_query":search_query,
+            "items_per_page":str(per_page)
+        }
+        return render(request, 'user_reviews.html', context)
+    else:
+        context={
+            "msg":"You need to login to access this"
+        }
+        return render(request, 'fail.html', context)
 
 def manual(request):
     return render(request, 'manual.html')

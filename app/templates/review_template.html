@@ -5,7 +5,7 @@
     
     <p class="review-author"><span class="key">User</span>: {{author}}</p>    
     
-    <a href="{% url 'review' review.id %}" title="View review" class="no-hover">
+    <a {% if not review_page %}href="{% url 'review' review.id %}"{% endif %} title="View review" class="no-hover">
         {% if review_page %}
             <div class="review-content content left">{{review.content|linebreaks}}</div>
         {% else %}
