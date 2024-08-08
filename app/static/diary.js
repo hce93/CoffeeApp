@@ -408,6 +408,16 @@ search_form.addEventListener('submit', function(){
 function clearSearch(){
     document.getElementById('search-form').querySelector('input').value=""
     document.getElementById('coffee_search').innerHTML=""
+    document.getElementById('coffee_search').style.display="none"
+    // var pagination_holder=document.getElementById('pagination_holder')
+    // pagination_holder.style.display="none"
+    // for(var child of pagination_holder.children){
+    //     child.innerHTML=""
+    // }
+    // clear paginator
+    document.getElementById('pagination_previous_holder').innerHTML=""
+    document.getElementById('pagination_next_holder').innerHTML=""
+    document.getElementById('pagination_text').innerHTML=""
 }
 
 function diaryChangePage(element, change){
@@ -497,14 +507,6 @@ function generateNextPreviousButtons(current_page, total_pages){
 
 // function to reset the search
 document.getElementById('reset_button').addEventListener('click', function(){
-    var search_div = document.getElementById('coffee_search')
-    search_div.innerHTML=""
-    search_div.style.display="none"
-    document.getElementById('search-form').querySelector('input').value=""
-    var pagination_holder=document.getElementById('pagination_holder')
-    console.log(pagination_holder)
-    for(var child of pagination_holder.children){
-        child.innerHTML=""
-    }
+    clearSearch()
 })
 

@@ -1157,8 +1157,13 @@ textarea{
 #profile-image-holder>label>img:hover{
     cursor: pointer;
 }
-
-
+.reply-box{
+    text-align: left;
+}
+#to_remove{
+    justify-content: center;
+    margin-bottom: 10px !important;
+}
 @media (max-width:1150px){
     #diary-entry{
         flex-direction: column;
