@@ -1180,11 +1180,14 @@ textarea{
 
 .heading-holder{
     width: min(95vw, 2000px);
-    margin: auto;
+    margin: 0 auto;
 }
 .heading-holder>a{
     display: block;
     width: fit-content;
+}
+.auto-width{
+    width:auto !important
 }
 @media (max-width:1150px){
     #diary-entry{

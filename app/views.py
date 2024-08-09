@@ -6,7 +6,7 @@ from django.http import HttpResponseRedirect
 from django.urls import reverse
 from .models import coffee_collection, Profile, Review, Comments, Bookmarks, coffee_diary
 from .forms import UserForm, ProfileForm, CoffeeForm, ReviewForm, CommentForm
-from .permissions import hasEditStatus
+from .permissions import hasEditStatus, hasDeleteStatus
 from app.services.coffee_service import CoffeeService
 from django.http import HttpResponse
 from django.contrib.auth import login, logout
@@ -657,10 +657,20 @@ def delete_review(request, id):
     return JsonResponse({"success":True})             
 
 # function to handle cascading deletion between mongoDB and postgresql
+# deletes coffee and associated reviews
 def delete_coffee(request, slug):
-    coffee_service = CoffeeService()
-    coffee_service.delete_coffee(slug)
-    return {"message":"coffee deleted"}
+    # check if user is a super user, staff, or within delete coffee group 
+    if hasDeleteStatus(request.user):
+        coffee_service = CoffeeService()
+        coffee_service.delete_coffee(slug)
+        print("Deletion completed")
+        msg="Coffee deleted"
+    else:
+        msg="You do not have permission"
+    context={
+        "msg":msg
+    }
+    return render(request, 'fail.html', context)
  
 def check_parents_deleted(comment):
     to_delete=[comment.id]
