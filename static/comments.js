@@ -79,11 +79,8 @@ $(document).on('click', '.delete', function(event){
     var id = $button.attr('value')
     var url = delete_comment_url + id
     $.ajax({
-        type:'POST',
+        type:'GET',
         url:url,
-        data:{
-            'csrfmiddlewaretoken': csrfToken
-        },
         success: function(response){
             console.log(response.success)
             var parent = $button.closest('.reply')

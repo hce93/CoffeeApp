@@ -49,6 +49,7 @@ $(document).on('submit', '#review-form', function(event){
                 setAverageRating()
             }).then(function(){
                 truncateText()
+                updateStars()
             })
 
         },
@@ -69,11 +70,8 @@ $(document).on('click', '.delete-review', function(event){
     var id = $button.attr('value')
     var url = delete_review_url + id
     $.ajax({
-        type:'POST',
+        type:'GET',
         url:url,
-        data:{
-            'csrfmiddlewaretoken': csrfToken
-        },
         success: function(response){
             new Promise(function(resolve){
                 var parent = $button.closest('.review-container')

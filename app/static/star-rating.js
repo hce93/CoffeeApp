@@ -24,8 +24,6 @@ function updateStars(){
             }
             // generate html if not part of edit window
         }else{
-            console.log("adding stars")
-            console.log(rating_holders[i])
             html=generateStars(rating_holders[i].getAttribute('rating'))  
             rating_holders[i].innerHTML=html  
         }
@@ -123,7 +121,7 @@ $('.new_star').hover(function(){
 
     // function to maintain colur of stars when user selects the rating
 // if user selects a new rating this function will adjust colours
-$('.new_star').click(function(){
+$(document).on('click', '.new_star', function(){
     var icon = $(this)
     var prior_siblings = icon.prevAll()
     var next_siblings = icon.nextAll()

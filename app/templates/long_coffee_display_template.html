@@ -9,6 +9,9 @@
             {% endif %} 
         {% endfor %}
         </div>
+        {% if coffee_edit_access %}
+            <a href="{% url 'coffee_edit' coffee.id %}"><span class="material-symbols-outlined">edit</span></a>
+        {% endif %}
         <div>
             <div class="action-box-holder justify-center">
                 {% include 'like_template.html' with is_liked=coffee.user_liked like_count=coffee.likes item=coffee.slug type="coffee" %}
@@ -35,6 +38,7 @@
                 <p>(<span id="avg-rating-count">{{coffee.count_rating}}</span>)</p>
             </div>
         </div>
+        
     </div>
     <div class="coffee-image">
         <img src="{{coffee.image}}">

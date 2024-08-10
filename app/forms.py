@@ -87,9 +87,6 @@ class CoffeeForm(forms.Form):
                     # use char field as this is being saved to a mongodb server which will save as string
                     self.fields[field]=forms.CharField(required=False, initial=self.data[field])
         
-        
-        
-        
     def clean(self):
         cleaned_data = super().clean()
         print("Cleaned Data: ", self.cleaned_data)

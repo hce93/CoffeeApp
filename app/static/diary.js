@@ -355,7 +355,6 @@ function sendNewReview(button){
             'csrfmiddlewaretoken':csrfToken,
             'content':content,
             'rating':rating,
-
         },
         success: function(response){
             if(response.success){

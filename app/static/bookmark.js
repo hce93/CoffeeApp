@@ -5,12 +5,8 @@ $(document).ready(function(){
         var url = bookmark_url + id
 
         $.ajax({
-            type:'POST',
+            type:'GET',
             url:url,
-            data:{
-
-                'csrfmiddlewaretoken': csrfToken
-            },
             success: function(response){
                 button=button[0]
                 console.log(button)

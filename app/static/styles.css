@@ -94,6 +94,7 @@ p, a{
 .material-symbols-outlined{
     cursor: pointer;
     padding-left: 1%;
+    color: gray;
 }
 
 .comment-div{
@@ -465,7 +466,7 @@ p, a{
     flex-direction: row;
     justify-content: space-evenly;
     margin: 3vh auto;
-    height: max(30vh, 300px);
+    height: max(30vh, 320px);
     background-color: rgb(248, 250, 240);
     padding: 20px;
     border-radius: 50px;
@@ -491,7 +492,7 @@ p, a{
     flex-direction: column;
     justify-content: space-evenly;
     align-items: center;
-    /* width: 50%; */
+    width: 50%;
 }
 .title, .key{
     font-weight: bold;
@@ -598,6 +599,7 @@ button{
 textarea{
     border: 1px solid gray;
     border-radius: 10px 10px 0 10px;
+    padding:5px
 }
 
 #star-rating{
@@ -617,6 +619,15 @@ textarea{
     background-color: rgb(248, 250, 240);
     border-radius: 50px;
     height: 30vh;
+    min-height: 300px;
+}
+#single-review-coffee>a{
+    display: flex;
+    align-self: center;
+    width: 150px;
+    justify-content: center;
+    margin-top:5px;
+    text-decoration: none;
 }
 
 #single-review-coffee>.coffee-image{
@@ -1188,6 +1199,11 @@ textarea{
 }
 .auto-width{
     width:auto !important
+}
+
+#review-errors{
+    width: fit-content;
+    align-self: center;
 }
 @media (max-width:1150px){
     #diary-entry{

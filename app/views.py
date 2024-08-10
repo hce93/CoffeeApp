@@ -4,6 +4,7 @@ from django.template.loader import render_to_string
 from django.db.models import Count, Avg, Q
 from django.http import HttpResponseRedirect
 from django.urls import reverse
+from django import forms
 from .models import coffee_collection, Profile, Review, Comments, Bookmarks, coffee_diary
 from .forms import UserForm, ProfileForm, CoffeeForm, ReviewForm, CommentForm
 from .permissions import hasEditStatus, hasDeleteStatus
@@ -14,14 +15,14 @@ from django.utils.text import slugify
 from django.http import JsonResponse, HttpResponseForbidden
 from django.middleware.csrf import get_token
 from bson.objectid import ObjectId
-import json
 from datetime import datetime
 from django.contrib.auth.decorators import permission_required, login_required
 from django.core.paginator import Paginator, EmptyPage
 from functools import partial
-import re
-import os
+import re, os, json, uuid
 from django.utils.datastructures import MultiValueDictKeyError
+from django.core.files.base import ContentFile
+from django.conf import settings
 
 def index(request):
     # top 5 highest rated coffees
@@ -271,6 +272,7 @@ def edit_profile(request, slug):
     user = request.user
     profile =  Profile.objects.get(slug=slug)
     current_image=str(profile.profile_image).replace('images/', '')
+    # check if user is editing their own profile. Only allow user to make changes to their own profile
     if profile.user_id==user.id:
         if request.method=="POST":
             form=ProfileForm(request.POST, request.FILES, instance=profile)
@@ -300,6 +302,7 @@ def edit_profile(request, slug):
             }
             # print("FORM: ", form)
             return render(request, 'edit_profile.html', context)
+    # if not editing their own profile then return to profile page of the user they're trying to edit
     else:
         return HttpResponseRedirect(reverse('profile', args=[slug]))
     
@@ -316,12 +319,49 @@ def logout_view(request):
 
 # function to add coffee to the mongodb server
 # only users that have permissions can do this
-def coffee_form(request):
+def coffee_form(request, id=None):
+    # check user has correct permissions. Can either be superuser, staff or part fo 'Add Coffee' group
     if hasEditStatus(request.user):
-        if request.method=="POST":
-            print("data: ", request.POST)
+        # if an id is passed to the url then the user is editing an existing coffee
+        if id:
+            coffee=coffee_collection.find_one({"_id":ObjectId(id)})
+            # update existing coffee
+            if request.method=="POST":
+                # clean dictionary 
+                cleaned_dict = {key:value for key, value in request.POST.items() if value !="" and key!="csrfmiddlewaretoken"}
+                # handle updating image
+                if request.FILES:
+                    # save new image
+                    data = request.FILES['image']
+                    extension = os.path.splitext(str(data))[1]
+                    unique_filename = str(uuid.uuid4())
+                    # get image extension
+                    image_path = os.path.join('upload/images/', unique_filename+extension)
+                    # save image file
+                    with open(image_path, 'wb') as file:
+                            for chunk in data.chunks():
+                                file.write(chunk)
+                    # set media path to be saved in mongodb
+                    media_path = os.path.join('/media/images/', unique_filename+extension)
+                    cleaned_dict['image']=media_path
+                    
+                    # # delete old image
+                    original_image = coffee['image']
+                    original_file_path=original_image.replace('/media', 'upload')
+                    os.remove(original_file_path)
+                coffee_collection.update_one(coffee, {"$set":cleaned_dict})
+                return HttpResponseRedirect(reverse('coffee', args=[coffee['slug']]))
+            else:
+                keys_to_ignore=['_id', 'slug', 'likes', 'date_added']
+                coffee_keys = [key for key in coffee.keys() if key not in keys_to_ignore]
+                form = CoffeeForm(initial=coffee)
+                form_keys=list(form.fields.keys())
+                keys_to_add=[key for key in coffee_keys if key not in form_keys]
+                for key in keys_to_add:
+                    form.fields[key]=forms.CharField(initial=coffee[key])
+        # check if user is posting data
+        elif request.method=="POST":
             form = CoffeeForm(request.POST, request.FILES)
-            print("FORM: ", form)
             if form.is_valid():
                 form.save()
             else:
@@ -329,11 +369,13 @@ def coffee_form(request):
                     "form":form
                 }
                 return render(request, 'coffee_form.html', context)
-        form = CoffeeForm()
+        else:
+            form = CoffeeForm()
         context = {
             "form":form
         }
         return render(request, 'coffee_form.html', context)
+    # if user doesn't have permission then return fail.html
     else:
         context={
             "msg":"You do not have permission to access this page"
@@ -374,95 +416,142 @@ def get_comment_count(review_id):
     return count
 
 def create_comment(request, id):
-    if request.method=="POST":
-        accepted_types=["comment", "reply"]
-        if request.POST.get('type') in accepted_types:
-            form=CommentForm(request.POST)
-            print(form)
-            if form.is_valid():
-                print("FORM IS VALID!!!!!")
-                comment = form.save(commit=False)
-                comment.author=request.user
-                # assign parent comment if reply to a comment
-                if request.POST.get('type')=="reply":
-                    parent = Comments.objects.get(id=id)
-                    comment.parent=parent
-                    review=parent.review
-                # if not it's a new comment on a review
-                else:
-                    review = Review.objects.get(id=id)
-                comment.review = review
-                comment.save()
-        
-        context = {
-            "comment":{"comment":[comment, False, {"like_count":0}, request.user.id==comment.author_id]},
-            "comment_form":CommentForm(),
-            "user":request.user
-        }
-        test_html=render_to_string('comment_reply_template.html', context, request=request)
-        
-        return JsonResponse({"msg":"success","html":test_html})
+    
+    if not request.user.is_authenticated or request.method != "POST":
+        msg="Invalid request method" if request.method != "POST" else "You do not have permission"
+        # if user sent ajax request then return json otherwise render html page
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            status=405 if request.method != "POST" else 403
+            return JsonResponse({"msg": msg}, status=status)
+        else:
+            context = {"msg": msg}
+            return render(request, 'fail.html', context)
+    if request.headers.get('x-requested-with') != 'XMLHttpRequest':
+        context = {"msg": "This action is only available via AJAX."}
+        return render(request, 'fail.html', context)     
+
+    accepted_types=["comment", "reply"]
+    comment_type=request.POST.get('type')
+    # check if comment type is not allowed and send error
+    if comment_type not in accepted_types:
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({"msg": "Invalid comment type"}, status=400)
+        else:
+            context = {"msg": "Invalid comment type"}
+            return render(request, 'fail.html', context)
+
+    form=CommentForm(request.POST)
+    if not form.is_valid():
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({"msg": "Invalid form data", "errors": form.errors}, status=400)
+        else:
+            context = {"msg": "Invalid form data", "errors": form.errors}
+            return render(request, 'fail.html', context)
+
+    comment = form.save(commit=False)
+    comment.author=request.user
+    # assign parent comment if reply to a comment
+    if comment_type=="reply":
+        parent = Comments.objects.get(id=id)
+        comment.parent=parent
+        review=parent.review
+    # if not it's a new comment on a review
+    else:
+        review = Review.objects.get(id=id)
+    comment.review = review
+    comment.save()
+    
+    context = {
+        "comment":{"comment":[comment, False, {"like_count":0}, request.user.id==comment.author_id]},
+        "comment_form":CommentForm(),
+        "user":request.user
+    }
+    test_html=render_to_string('comment_reply_template.html', context, request=request)
+    
+    return JsonResponse({"msg":"success","html":test_html}, status=200)
 
 def create_review(request, slug):
-    if request.method=="POST":
-        form = ReviewForm(request.POST)
-        if form.is_valid():
-            author = request.user
-            review = form.save(commit=False)
-            review.author=author
-            review.coffee_slug = slug
-            review.save()
-            
-            print(review.id)
-            comment_form = CommentForm()
-            context = {
-                "author":request.user.username,
-                "review":review,
-                "comment_count":0,
-                "comment_form":comment_form,
-                "user_is_author":True,
-                "review_page":True
-            }
-            html = render_to_string('review_template.html', context, request=request)
-            # print(html)
-            
-            return JsonResponse({"success":True, "html":html})
-        else:            
-            # error handling if form is not valid
-            print("Errors", form.errors)
-            return JsonResponse({"success":False, "errors":form.errors.as_ul()}, status=400) 
+    if not request.user.is_authenticated or request.method != "POST":
+        msg="Invalid request method" if request.method != "POST" else "You do not have permission"
+        # if user sent ajax request then return json otherwise render html page
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            status=405 if request.method != "POST" else 403
+            return JsonResponse({"msg": msg}, status=status)
+        else:
+            context = {"msg": msg}
+            return render(request, 'fail.html', context)
+    if request.headers.get('x-requested-with') != 'XMLHttpRequest':
+        context = {"msg": "This action is only available via AJAX."}
+        return render(request, 'fail.html', context)     
+    
+    form = ReviewForm(request.POST)
+    if form.is_valid():
+        author = request.user
+        review = form.save(commit=False)
+        review.author=author
+        review.coffee_slug = slug
+        review.save()
+        comment_form = CommentForm()
+        context = {
+            "author":request.user.username,
+            "review":review,
+            "comment_count":0,
+            "comment_form":comment_form,
+            "user_is_author":True,
+            "review_page":True
+        }
+        html = render_to_string('review_template.html', context, request=request)
+        return JsonResponse({"success":True, "html":html}, status=200)
+    else:            
+        # error handling if form is not valid
+        print("Errors", form.errors)
+        return JsonResponse({"success":False, "errors":form.errors.as_ul()}, status=400) 
 
 def edit_review(request, id):
+    if not request.user.is_authenticated or request.method != "POST":
+        msg="Invalid request method" if request.method != "POST" else "You do not have permission"
+        # if user sent ajax request then return json otherwise render html page
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            status=405 if request.method != "POST" else 403
+            return JsonResponse({"msg": msg}, status=status)
+        else:
+            context = {"msg": msg}
+            return render(request, 'fail.html', context)
+    if request.headers.get('x-requested-with') != 'XMLHttpRequest':
+        context = {"msg": "This action is only available via AJAX."}
+        return render(request, 'fail.html', context)     
+
     success=False
-    if request.method=="POST":
-        # check if updating a review or comment
-        if request.POST.get('type')=="comment":
-            comment = Comments.objects.get(id=id)
-            if comment.author_id==request.user.id:
-                updated_content=request.POST.get('content')
-                comment.content=updated_content
-                comment.save()
-                success=True            
-        # if not a comment we are updating a review
-        elif request.POST.get('type')=="review":
-            review = Review.objects.get(id=id)
-            if review.author_id==request.user.id:
-                # update review
-                updated_content = request.POST.get('content')
-                review.content=updated_content
-                updated_rating = request.POST.get('rating')
-                review.rating = updated_rating
-                review.save()
-                success=True
+    request_type=request.POST.get('type')
+    # check if updating a review or comment
+    if request_type=="comment":
+        comment = Comments.objects.get(id=id)
+        if comment.author_id==request.user.id:
+            updated_content=request.POST.get('content')
+            comment.content=updated_content
+            comment.save()
+            success=True            
+    # if not a comment we are updating a review
+    elif request_type=="review":
+        review = Review.objects.get(id=id)
+        if review.author_id==request.user.id:
+            # update review
+            updated_content = request.POST.get('content')
+            review.content=updated_content
+            updated_rating = request.POST.get('rating')
+            review.rating = updated_rating
+            review.save()
+            success=True
     return JsonResponse({"success":success})
 
 def coffee(request, slug):
     # handle post requests below for comments and reviews from registered users only
+    # only allow authenticated users to post requests to coffee page
     if request.method=="POST" and request.user.is_authenticated:
+        # check if comment or reply flag is in the post request
         if request.POST.get('comment') or request.POST.get('reply'):
             form=CommentForm(request.POST)
             if form.is_valid():
-                print("FORM IS VALID!!!!!")
                 comment = form.save(commit=False)
                 comment.author=request.user
                 # assign parent comment if reply to a comment
@@ -476,6 +565,7 @@ def coffee(request, slug):
                     review = Review.objects.get(id=review_id)
                 comment.review = review
                 comment.save()
+        # if not reply or comment then it is a review
         else:     
             form = ReviewForm(request.POST)
             if form.is_valid():
@@ -490,6 +580,7 @@ def coffee(request, slug):
     # try to load forms and data
     try:
         coffee = coffee_collection.find_one({"slug":slug})
+        coffee['id']=str(coffee['_id'])
         review_form = ReviewForm()
         comment_form = CommentForm()
         
@@ -505,7 +596,8 @@ def coffee(request, slug):
             "comment_form":comment_form,
             "review_and_comment":review_and_comment,
             "in_diary":check_coffee_in_diary(request.user.id, coffee_slug),
-            "coffee":coffee
+            "coffee":coffee,
+            "coffee_edit_access": hasEditStatus(request.user)
         }
         return render(request, 'coffee.html', context)
     # catch type error exception
@@ -514,15 +606,31 @@ def coffee(request, slug):
             "msg":"Unable to access this page"
         }
         return render(request, 'fail.html', context)
-
+    
 # function to serve ajax requests to like comments/reviews/coffees
 def like_item(request, id):
+    # check if user is not authenticated
+    if not request.user.is_authenticated or request.method != "POST":
+        msg="Invalid request method" if request.method != "POST" else "You do not have permission"
+        # if user sent ajax request then return json otherwise render html page
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            status=405 if request.method != "POST" else 403
+            return JsonResponse({"msg": msg}, status=status)
+        else:
+            context = {"msg": msg}
+            return render(request, 'fail.html', context)
+    if request.headers.get('x-requested-with') != 'XMLHttpRequest':
+        context = {"msg": "This action is only available via AJAX."}
+        return render(request, 'fail.html', context)  
+
     msg="failed"
+    status=400
     count=0
     user=request.user
-    if request.POST.get('type')=="coffee":
+    request_type=request.POST.get('type')
+    # check if user is trying to like a coffee
+    if request_type=="coffee":
         coffee = coffee_collection.find_one({"slug":id})
-        
         likes = [like for like in coffee['likes']]
         if user.id in likes:
             likes.remove(user.id)
@@ -537,7 +645,9 @@ def like_item(request, id):
             }
         )
         msg="success"
-    if request.POST.get('type')=="review":
+        status=200
+    # check if user is trying to like a review
+    if request_type=="review":
         review=Review.objects.get(id=id)
         if review.likes.filter(id=user.id).exists():
             review.likes.remove(user)
@@ -545,8 +655,10 @@ def like_item(request, id):
             review.likes.add(user)
         id=review.coffee_slug
         msg="success"
+        status=200
         count=review.likes.count()
-    if request.POST.get('type')=="comment":
+    # check if user is trying to like a comment
+    if request_type=="comment":
         comment=Comments.objects.get(id=id)
         if comment.likes.filter(id=user.id).exists():
             comment.likes.remove(user)
@@ -554,8 +666,10 @@ def like_item(request, id):
             comment.likes.add(user)
         id=comment.review.coffee_slug
         msg="success"
+        status=200
         count=comment.likes.count()
-    return JsonResponse({'msg':msg, 'count':count})
+    return JsonResponse({'msg':msg, 'count':count}, status=status)
+
 
 def is_liked(item, user, coffee=False):
     if coffee:
@@ -573,9 +687,22 @@ def is_liked(item, user, coffee=False):
             return False
         
 def delete_comment(request, id):
+    
+    if not request.user.is_authenticated or request.method != "GET":
+        msg="Invalid request method" if request.method != "GET" else "You do not have permission"
+        # if user sent ajax request then return json otherwise render html page
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            status=405 if request.method != "GET" else 403
+            return JsonResponse({"msg": msg}, status=status)
+        else:
+            context = {"msg": msg}
+            return render(request, 'fail.html', context)
+    if request.headers.get('x-requested-with') != 'XMLHttpRequest':
+        context = {"msg": "This action is only available via AJAX."}
+        return render(request, 'fail.html', context)    
+    
     comment = Comments.objects.get(id=id)
     review_id=comment.review_id
-    success=""
     content=""
     all_children_deleted=False
     to_remove=""
@@ -606,19 +733,18 @@ def delete_comment(request, id):
                 # if we have deleted parents we can work through the list and delete these
                 for remove_id in to_remove:
                     Comments.objects.get(id=remove_id).delete()
-        success=True
+        status=200
         # get new comment count for the whole review
         comment_count=get_comment_count(review_id)
     else:
-        success=False
+        status=401
     retJson={
-        "success": success,
         "content":content,
         "to_remove":to_remove,
         "all_children_deleted":all_children_deleted,
         "comment_count":comment_count
     }
-    return JsonResponse(retJson)
+    return JsonResponse(retJson, status=status)
 
 def check_children_deleted(comment):
     print("Checking: ", comment.content, comment.id)
@@ -652,9 +778,26 @@ def delete_children(comment):
         child.delete()
 
 def delete_review(request, id):
+    if not request.user.is_authenticated or request.method != "GET":
+        msg="Invalid request method" if request.method != "GET" else "You do not have permission"
+        # if user sent ajax request then return json otherwise render html page
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            status=405 if request.method != "GET" else 403
+            return JsonResponse({"msg": msg}, status=status)
+        else:
+            context = {"msg": msg}
+            return render(request, 'fail.html', context)
+    
+    if request.headers.get('x-requested-with') != 'XMLHttpRequest':
+        context = {"msg": "This action is only available via AJAX."}
+        return render(request, 'fail.html', context)   
+      
     review = Review.objects.get(id=id)   
-    review.delete()
-    return JsonResponse({"success":True})             
+    if request.user.id==review.author_id:
+        review.delete()
+        return JsonResponse({"success":True}, status=200)  
+    else:
+        return JsonResponse({"success":False}, status=401)  
 
 # function to handle cascading deletion between mongoDB and postgresql
 # deletes coffee and associated reviews
@@ -663,13 +806,14 @@ def delete_coffee(request, slug):
     if hasDeleteStatus(request.user):
         coffee_service = CoffeeService()
         coffee_service.delete_coffee(slug)
-        print("Deletion completed")
         msg="Coffee deleted"
+    # if user does not have permission then change context message 
     else:
         msg="You do not have permission"
     context={
         "msg":msg
     }
+    # use fail.html to display message and include home button
     return render(request, 'fail.html', context)
  
 def check_parents_deleted(comment):
@@ -686,6 +830,19 @@ def check_parents_deleted(comment):
     return to_delete
 
 def bookmark_coffee(request, slug):
+    if not request.user.is_authenticated or request.method != "GET":
+        msg="Invalid request method" if request.method != "GET" else "You do not have permission"
+        # if user sent ajax request then return json otherwise render html page
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            status=405 if request.method != "GET" else 403
+            return JsonResponse({"msg": msg}, status=status)
+        else:
+            context = {"msg": msg}
+            return render(request, 'fail.html', context)
+    if request.headers.get('x-requested-with') != 'XMLHttpRequest':
+        context = {"msg": "This action is only available via AJAX."}
+        return render(request, 'fail.html', context)    
+    
     user = request.user
     if Bookmarks.objects.filter(user=user, coffee_slug=slug).exists():
         item = Bookmarks.objects.get(user=user, coffee_slug=slug)
@@ -693,9 +850,7 @@ def bookmark_coffee(request, slug):
     else:
         item = Bookmarks(user=user, coffee_slug=slug)
         item.save()
-    
-    print("Slug: ",slug)
-    return JsonResponse({"success":True})
+    return JsonResponse({"success":True}, status=200)
 
 # function to load diary template
 @login_required
@@ -749,18 +904,6 @@ def generate_diary_html(diary, request):
         
     return html, suggestions
 
-def get_diary_id(request, title):
-    if request.user.is_authenticated:
-        coffee = coffee_collection.find_one({"title":title})
-        slug = coffee['slug']
-        diary=coffee_diary.find_one({"coffeeSlug":slug, "user_id":request.user.id})
-        print(diary)
-        context={
-            "success":True,
-            "id":str(diary["_id"])
-        }
-        
-        return JsonResponse(context)
 @login_required
 def diary_entry(request, slug):
     try:
@@ -789,33 +932,34 @@ def diary_entry(request, slug):
     }
     return render(request, 'fail.html', context)
 
-def get_single_diary_entry(request, slug):
-    diary_entry = dict(coffee_diary.find_one({"_id":ObjectId(slug)}))
-    diary_entry['_id']=str(diary_entry['_id'])
-    diary_entry['coffeeID']=str(diary_entry['coffeeID'])
-    values = [[value] for key, value in diary_entry.items()]
-    rows = list(diary_entry.keys())
-    print("VAlues: ", values)
-    print("KEYS: ", rows)
-    return JsonResponse({"success":True,"data":diary_entry, "values":values, "rows":rows})
-
 # function diary template uses to load data to ajax
 def get_diary_data(request):
-    if request.method=="GET":
-        context={"success":False}
-        if request.user.is_authenticated:
-            # headers to ignore are the uneditable fields in the handsontable
-            user_diary, coffee_headers, headers_to_ignore=generate_diary(request.user.id)
-            # add last_update to be ignored as this beloings to diary but should not be editable
-            headers_to_ignore.append('last_update')
-            # convert id to a string from ObjectId so it can be sent as part of json response
-            for diary in user_diary:
-                diary['_id']=str(diary['_id'])
-            context["success"]=True
-            context["diary"]=user_diary
-            context['coffee_headers']=coffee_headers
-            context['headers_to_ignore']=headers_to_ignore
-        return JsonResponse(context)
+    if not request.user.is_authenticated or request.method != "GET":
+        msg="Invalid request method" if request.method != "GET" else "You do not have permission"
+        # if user sent ajax request then return json otherwise render html page
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            status=405 if request.method != "GET" else 403
+            return JsonResponse({"msg": msg}, status=status)
+        else:
+            context = {"msg": msg}
+            return render(request, 'fail.html', context)
+    if request.headers.get('x-requested-with') != 'XMLHttpRequest':
+        context = {"msg": "This action is only available via AJAX."}
+        return render(request, 'fail.html', context)   
+
+    context={"success":False}
+    # headers to ignore are the uneditable fields in the handsontable
+    user_diary, coffee_headers, headers_to_ignore=generate_diary(request.user.id)
+    # add last_update to be ignored as this beloings to diary but should not be editable
+    headers_to_ignore.append('last_update')
+    # convert id to a string from ObjectId so it can be sent as part of json response
+    for diary in user_diary:
+        diary['_id']=str(diary['_id'])
+    context["success"]=True
+    context["diary"]=user_diary
+    context['coffee_headers']=coffee_headers
+    context['headers_to_ignore']=headers_to_ignore
+    return JsonResponse(context, status=200)
 
 
 def add_coffee_data_to_diary(diary):
@@ -831,10 +975,10 @@ def add_coffee_data_to_diary(diary):
     return new_diary, list(coffee_headers)
 
 def generate_diary(user_id):
+    
     user_diary=coffee_diary.find({"user_id":user_id})
     ignore = ["user_id","coffeeID","coffeeSlug", "image", "likes", "slug", "date_added"]
     user_diary, headers_to_ignore = add_coffee_data_to_diary(user_diary)
-    print("Headers to Ignore: ", headers_to_ignore)
     data=[]
     table_headers=[]
     coffee_entry_headers_to_keep=[item for item in headers_to_ignore if item not in ignore if item!="_id"]
@@ -850,83 +994,120 @@ def generate_diary(user_id):
 
 # function to add a coffee to the diary of a user. Used in the specific coffee pages
 def add_to_diary(request, slug):
-    if request.POST:
-        user_id = request.user.id
-        coffee=coffee_collection.find_one({"slug":slug})
-        coffee_data = {"user_id":user_id,"coffeeID":coffee["_id"], "coffeeSlug":coffee["slug"], "last_update":datetime.now().strftime('%Y-%m-%d : %H:%M')}
-        coffee_diary.insert_one(coffee_data)
-        return JsonResponse({"success":True})
-    else:
-        return JsonResponse({"success":False})
+    if not request.user.is_authenticated or request.method != "POST":
+        msg="Invalid request method" if request.method != "POST" else "You do not have permission"
+        # if user sent ajax request then return json otherwise render html page
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            status=405 if request.method != "POST" else 403
+            return JsonResponse({"msg": msg}, status=status)
+        else:
+            context = {"msg": msg}
+            return render(request, 'fail.html', context)
+    if request.headers.get('x-requested-with') != 'XMLHttpRequest':
+        context = {"msg": "This action is only available via AJAX."}
+        return render(request, 'fail.html', context)    
+    
+    user_id = request.user.id
+    coffee=coffee_collection.find_one({"slug":slug})
+    coffee_data = {"user_id":user_id,"coffeeID":coffee["_id"], "coffeeSlug":coffee["slug"], "last_update":datetime.now().strftime('%Y-%m-%d : %H:%M')}
+    coffee_diary.insert_one(coffee_data)
+    return JsonResponse({"success":True}, status=200)
+
 
 # function to save any changes made by the user in the diary
 def edit_diary(request, slug):
-    if request.method=="POST":
-        diary_entry = coffee_diary.find_one({"_id":ObjectId(slug)})
-        # ensure correct user is editing the diary
-        if request.user.id==diary_entry["user_id"]:
-            # check if user sending edit request from diary table itself
-            if request.POST.get('edit_from_table'):
-                changes_str = request.POST.get('changes')
-                changes = json.loads(changes_str)
-                # update last_update
-                print("Changes: ",changes)
-                coffee_diary.update_one(diary_entry, {"$set":{changes[1]:changes[3], "last_update":datetime.now().strftime('%Y-%m-%d : %H:%M')}})
-                
-                return JsonResponse({"success":True})
-            # if not from table will be from edit diary entry page
-            else:
-                ignore = ["_id", "user_id", "coffeeID", "coffeeSlug"]
-                current_keys = [key for key in diary_entry.keys() if key not in ignore]
-                # get data sent in post request and convert to readable dict
-                data = request.body.decode('utf-8')
-                data_dict = json.loads(data)
-                # check if fields added are already in the coffee or diary entries
-                keys = data_dict.keys()
-                
-                update_dict={}
-                for key in data_dict.keys():
-                    # check data isn't empty
-                    if data_dict[key]:
-                        update_dict[key]=data_dict[key]
-                key_to_delete = [key for key in current_keys if key not in update_dict.keys()]
-                dict_to_delete={key:value for key,value in diary_entry.items() if key in key_to_delete}
-                coffee_diary.update_one(diary_entry, {"$set":update_dict, "$unset":dict_to_delete})
-                return JsonResponse({"success":True})
+    if not request.user.is_authenticated or request.method != "POST":
+        msg="Invalid request method" if request.method != "POST" else "You do not have permission"
+        # if user sent ajax request then return json otherwise render html page
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            status=405 if request.method != "POST" else 403
+            return JsonResponse({"msg": msg}, status=status)
         else:
-            return JsonResponse({"success":False})
+            context = {"msg": msg}
+            return render(request, 'fail.html', context)
+
+
+    diary_entry = coffee_diary.find_one({"_id":ObjectId(slug)})
+    # ensure correct user is editing the diary
+    if request.user.id==diary_entry["user_id"]:
+        # check if user sending edit request from diary table itself
+        if request.POST.get('edit_from_table'):
+            changes_str = request.POST.get('changes')
+            changes = json.loads(changes_str)
+            # update last_update
+            print("Changes: ",changes)
+            coffee_diary.update_one(diary_entry, {"$set":{changes[1]:changes[3], "last_update":datetime.now().strftime('%Y-%m-%d : %H:%M')}})
+            
+            return JsonResponse({"success":True})
+        # if not from table will be from edit diary entry page
+        else:
+            ignore = ["_id", "user_id", "coffeeID", "coffeeSlug"]
+            current_keys = [key for key in diary_entry.keys() if key not in ignore]
+            # get data sent in post request and convert to readable dict
+            data = request.body.decode('utf-8')
+            data_dict = json.loads(data)
+            # check if fields added are already in the coffee or diary entries
+            keys = data_dict.keys()
+            
+            update_dict={}
+            for key in data_dict.keys():
+                # check data isn't empty
+                if data_dict[key]:
+                    update_dict[key]=data_dict[key]
+            key_to_delete = [key for key in current_keys if key not in update_dict.keys()]
+            dict_to_delete={key:value for key,value in diary_entry.items() if key in key_to_delete}
+            coffee_diary.update_one(diary_entry, {"$set":update_dict, "$unset":dict_to_delete})
+            return JsonResponse({"success":True}, status=200)
+    else:
+        return JsonResponse({"success":False}, status=401)
         
 def check_coffee_in_diary(user_id,slug):
     check = coffee_diary.find_one({"coffeeSlug":slug, "user_id":user_id})
     return True if check else False
     
 def check_diary_header(request):
-    if request.method=="POST":
-        # get header to check from posted data
-        data = request.body.decode('utf-8')
-        data_dict = json.loads(data)
-        element = data_dict['element'].lower()
-        # replace space with _ so element is comparable with keys
-        element=element.replace(" ", "_")
-        # load coffee and diary entries
-        diary_entry = coffee_diary.find_one({"_id":ObjectId(data_dict['id'])})
-        coffee_slug = diary_entry['coffeeSlug']
-        coffee = coffee_collection.find_one({"slug":coffee_slug})
-        print('a')
-        # check if element exists in either
-        print("Element: ", element)
-        for key in diary_entry.keys():
-            print("Checking: " + key + " vs. " + element)
-            if key.lower() == element:
-                return JsonResponse({"success":False})
-        print('b')
-        for key in coffee.keys():
-            if key == element:
-                return JsonResponse({"success":False})
-        print('c')
-        return JsonResponse({"success":True})
+    if not request.user.is_authenticated or request.method != "POST":
+        msg="Invalid request method" if request.method != "POST" else "You do not have permission"
+        # if user sent ajax request then return json otherwise render html page
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            status=405 if request.method != "POST" else 403
+            return JsonResponse({"msg": msg}, status=status)
+        else:
+            context = {"msg": msg}
+            return render(request, 'fail.html', context)
+    # get header to check from posted data
+    data = request.body.decode('utf-8')
+    data_dict = json.loads(data)
+    element = data_dict['element'].lower()
+    # replace space with _ so element is comparable with keys
+    element=element.replace(" ", "_")
+    # load coffee and diary entries
+    diary_entry = coffee_diary.find_one({"_id":ObjectId(data_dict['id'])})
+    coffee_slug = diary_entry['coffeeSlug']
+    coffee = coffee_collection.find_one({"slug":coffee_slug})
+    # check if element exists in either
+    for key in diary_entry.keys():
+        if key.lower() == element:
+            return JsonResponse({"success":False}, status=400)
+    for key in coffee.keys():
+        if key == element:
+            return JsonResponse({"success":False}, status=400)
+    return JsonResponse({"success":True}, status=200)
     
 def delete_diary_entry(request, id):
+    if not request.user.is_authenticated or request.method != "GET":
+        msg="Invalid request method" if request.method != "GET" else "You do not have permission"
+        # if user sent ajax request then return json otherwise render html page
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            status=405 if request.method != "GET" else 403
+            return JsonResponse({"msg": msg}, status=status)
+        else:
+            context = {"msg": msg}
+            return render(request, 'fail.html', context)
+    if request.headers.get('x-requested-with') != 'XMLHttpRequest':
+        context = {"msg": "This action is only available via AJAX."}
+        return render(request, 'fail.html', context)   
+
     success=False
     user_id=request.user.id
     diary_id=ObjectId(id)
@@ -936,34 +1117,65 @@ def delete_diary_entry(request, id):
         # delete the diary entry
         coffee_diary.delete_one(diary_entry)
         success=True
-    return JsonResponse({"success":success})
+    return JsonResponse({"success":success}, status=200)
 
 def get_coffee_from_diary(request, id):
+    
+    if not request.user.is_authenticated or request.method != "GET":
+        msg="Invalid request method" if request.method != "GET" else "You do not have permission"
+        # if user sent ajax request then return json otherwise render html page
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            status=405 if request.method != "GET" else 403
+            return JsonResponse({"msg": msg}, status=status)
+        else:
+            context = {"msg": msg}
+            return render(request, 'fail.html', context)
+    if request.headers.get('x-requested-with') != 'XMLHttpRequest':
+        context = {"msg": "This action is only available via AJAX."}
+        return render(request, 'fail.html', context)  
+     
     diary_entry = coffee_diary.find_one({"_id":ObjectId(id)})
     context={"success":False}
+    status=401
     if request.user.id==diary_entry['user_id']:
         coffee_slug=diary_entry['coffeeSlug']
         context['slug']=coffee_slug
         context['success']=True
-    return JsonResponse(context)
+        status=200
+    return JsonResponse(context, status=status)
 
 def review_from_diary(request, id):
+    if not request.user.is_authenticated or request.method != "POST":
+        msg="Invalid request method" if request.method != "POST" else "You do not have permission"
+        # if user sent ajax request then return json otherwise render html page
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            status=405 if request.method != "POST" else 403
+            return JsonResponse({"msg": msg}, status=status)
+        else:
+            context = {"msg": msg}
+            return render(request, 'fail.html', context)
+    if request.headers.get('x-requested-with') != 'XMLHttpRequest':
+        context = {"msg": "This action is only available via AJAX."}
+        return render(request, 'fail.html', context)   
+    
     diary_entry = coffee_diary.find_one({"_id":ObjectId(id)})
     success=False
-    if request.method=="POST":
-        if request.user.id==diary_entry['user_id']:
-            content=request.POST.get('content')
-            rating=request.POST.get('rating')
-            print("Content: ", content)
-            print("Rating: ", rating)
-            form = ReviewForm(request.POST)
-            if form.is_valid():
-                review=form.save(commit=False)
-                review.author=request.user
-                review.coffee_slug=diary_entry['coffeeSlug']
-                review.save()
-                success=True
-    return JsonResponse({"success":success})
+    status=400
+
+    if request.user.id==diary_entry['user_id']:
+        content=request.POST.get('content')
+        rating=request.POST.get('rating')
+        print("Content: ", content)
+        print("Rating: ", rating)
+        form = ReviewForm(request.POST)
+        if form.is_valid():
+            review=form.save(commit=False)
+            review.author=request.user
+            review.coffee_slug=diary_entry['coffeeSlug']
+            review.save()
+            success=True
+            status=200
+    return JsonResponse({"success":success}, status=status)
         
     
 # view to display a single review - still contains comment, liking functionality
@@ -981,56 +1193,54 @@ def review(request, id):
         "coffee":coffee,
         "single_review":True
     }
-    print("COFFEE: ", coffee)
     return render(request, 'single_review.html', context)  
 
 def user_reviews(request):
-    if request.user.is_authenticated:
-        search_query= request.GET.get('search') if request.GET.get('search') else ""
-        # reviews = Review.objects.filter(author_id=request.user.id)
-        try:
-            author= User.objects.get(username=request.GET.get('user')) if request.GET.get('user') else request.user
-            reviews = Review.objects.filter(
-                Q(author_id=author.id) & Q(coffee_slug__icontains=search_query)
-            )
-            reviews_updated=generate_review_info(reviews, User.objects.get(username=request.user))
-        except User.DoesNotExist:
-            reviews_updated=[]
-        
-        # sort order according to what the user has selected
-        sort_request = request.GET.get('sort', default='rating_desc')
-        sort_query = re.sub('_asc|_desc','',sort_request)
-        sort_rule = bool(re.search('desc',sort_request))
-        
-        def sort_function(element, sort_by):
-            try:
-                return element[sort_by]
-            except KeyError:
-                try:
-                    return getattr(element['review'],sort_by)
-                except AttributeError:
-                    return element[sort_by]
-        sort = partial(sort_function, sort_by=sort_query)
-        sorted_coffees=sorted(reviews_updated, key=sort, reverse=sort_rule)
-        per_page = request.GET.get('per_page') if request.GET.get('per_page') else 5
-        paginator=Paginator(sorted_coffees, per_page=per_page)
-        page = request.GET.get('page', default=1)
-        try:
-            items = paginator.get_page(number=page)
-        except EmptyPage:
-            items=[]
-        context={
-            "reviews":items,
-            "sort_order":sort_request,
-            "search_query":search_query,
-            "items_per_page":str(per_page)
-        }
-        return render(request, 'user_reviews.html', context)
-    else:
+    if not request.user.is_authenticated:
         context={
             "msg":"You need to login to access this"
         }
         return render(request, 'fail.html', context)
+    search_query= request.GET.get('search') if request.GET.get('search') else ""
+    # reviews = Review.objects.filter(author_id=request.user.id)
+    try:
+        author= User.objects.get(username=request.GET.get('user')) if request.GET.get('user') else request.user
+        reviews = Review.objects.filter(
+            Q(author_id=author.id) & Q(coffee_slug__icontains=search_query)
+        )
+        reviews_updated=generate_review_info(reviews, User.objects.get(username=request.user))
+    except User.DoesNotExist:
+        reviews_updated=[]
+    
+    # sort order according to what the user has selected
+    sort_request = request.GET.get('sort', default='rating_desc')
+    sort_query = re.sub('_asc|_desc','',sort_request)
+    sort_rule = bool(re.search('desc',sort_request))
+    
+    def sort_function(element, sort_by):
+        try:
+            return element[sort_by]
+        except KeyError:
+            try:
+                return getattr(element['review'],sort_by)
+            except AttributeError:
+                return element[sort_by]
+    sort = partial(sort_function, sort_by=sort_query)
+    sorted_coffees=sorted(reviews_updated, key=sort, reverse=sort_rule)
+    per_page = request.GET.get('per_page') if request.GET.get('per_page') else 5
+    paginator=Paginator(sorted_coffees, per_page=per_page)
+    page = request.GET.get('page', default=1)
+    try:
+        items = paginator.get_page(number=page)
+    except EmptyPage:
+        items=[]
+    context={
+        "reviews":items,
+        "sort_order":sort_request,
+        "search_query":search_query,
+        "items_per_page":str(per_page)
+    }
+    return render(request, 'user_reviews.html', context)        
 
 def manual(request):
     return render(request, 'manual.html')
