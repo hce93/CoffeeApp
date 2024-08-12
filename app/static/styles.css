@@ -255,10 +255,13 @@ p, a{
         font-family: 'Font Awesome 6 Free';
         color: gray;
         margin:0 auto;
-        padding: 15px 0 0 2.5vw;
+        /* padding: 15px 0 0 2.5vw; */
         display: flex;
         flex-direction: row;
         width:min(95vw, 2000px)
+    }
+    .heading-padding{
+        padding: 15px 0 0 2.5vw;
     }
     .heading-holder{
         width: min(95vw, 2000px);
@@ -594,6 +597,7 @@ button{
 
 .comment-form>button{
     background-color: white;
+    color: gray;
 }
 
 textarea{

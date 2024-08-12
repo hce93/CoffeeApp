@@ -18,33 +18,26 @@
       </form>
     </div>
   </div>
-  <h4 class="sub-heading">New Coffees</h4>
+  <h4 class="sub-heading heading-padding">New Coffees</h4>
   <div class="recent-coffee-div">
     {% for coffee in most_recent_coffees %}
       {% include 'short_coffee_display_template.html' with coffee=coffee diary=True in_diary=coffee.in_diary%}
     {% endfor %}
   </div>
-  <h4 class="sub-heading">Top Rated Coffees</h4>
+  <h4 class="sub-heading heading-padding">Top Rated Coffees</h4>
   <div class="recent-coffee-div secondary-colour">
     {% for coffee in top_rated_coffees %}
       {% include 'short_coffee_display_template.html' with coffee=coffee diary=True in_diary=coffee.in_diary%}
     {% endfor %}
   </div>
-  {% comment %} <p>Top Reviewed Coffees</p>
-  <div class="recent-coffee-div">
-    {% for coffee in top_reviewed_coffee %}
-      {% include 'short_coffee_display_template.html' with coffee=coffee diary=True in_diary=coffee.in_diary %}
-    {% endfor %}
-  </div> {% endcomment %}
-
-  <h4 class="sub-heading">New Reviews</h4>
+  <h4 class="sub-heading heading-padding">New Reviews</h4>
   <div class="recent-review-div">
   {% for item in recent_reviews %}
     {% include 'review_template.html' with author=item.author review=item.review comment_count=item.comment_count home=True title=item.title roaster=item.roaster like_count=item.like_count is_liked=item.is_liked %}
   {% endfor %}
   </div>
 
-  <h4 class="sub-heading">Popular Reviews</h4>
+  <h4 class="sub-heading heading-padding">Popular Reviews</h4>
   <div class="popular-review-div secondary-colour">
   {% for item in popular_reviews %}
     {% include 'review_template.html' with author=item.author review=item.review comment_count=item.comment_count home=True title=item.title roaster=item.roaster like_count=item.like_count is_liked=item.is_liked%}

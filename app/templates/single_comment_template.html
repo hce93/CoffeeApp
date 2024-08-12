@@ -12,11 +12,11 @@
             {% else %}
                 {% if user.is_authenticated %}
                     <button onclick="toggleDiv(this)" class="btn comment" title="Add comment">
-                {% else %}
-                    <button class="btn comment">
+                        <i class="fa-regular fa-comment"></i>
+                    </button>
+
                 {% endif %}
-                    <i class="fa-regular fa-comment"></i>
-                </button>
+                    
                 {% if comment.3 %}
                     <span class="material-symbols-outlined delete" value={{comment.0.id}}>delete</span>
                     <span class="material-symbols-outlined edit-review-comment" value={{comment.0.id}} type="comment" title="Edit comment">edit</span>

@@ -123,7 +123,10 @@ def all_coffees(request):
         bookmarks = True if request.GET.get('bookmarks')=="true" else False
     coffees=list(coffee_collection.find({"$or":[{"title":{"$regex":search_query, "$options":'i'}},
                                                 {"roaster":{"$regex":search_query, "$options":'i'}},
-                                                {"varietal":{"$regex":search_query, "$options":'i'}}]}))
+                                                {"variety":{"$regex":search_query, "$options":'i'}},
+                                                {"process":{"$regex":search_query, "$options":'i'}},
+                                                {"country":{"$regex":search_query, "$options":'i'}},
+                                                {"region":{"$regex":search_query, "$options":'i'}}]}))
     coffees_with_info=[]
     for x in range(len(coffees)):
         # check if user is looking for liked coffee
@@ -186,7 +189,6 @@ def all_coffees(request):
                     "total_pages":total_pages
                    }
         if page<total_pages:
-            print("Adding")
             context['more_pages']=True
         return JsonResponse(context)
     else:
@@ -206,15 +208,12 @@ def create_profile(username):
 def register_user(request):
     if request.method=="POST":
         form = UserForm(request.POST)
-        print(form)
         if form.is_valid():
             user = form.save()
             login(request, user)
-            print(user)
             create_profile(request.POST.get('username'))
             return redirect('/')
         else:
-            print("Form errors: ", form.errors)
             context = {
                 'form': form
             }
@@ -280,13 +279,13 @@ def edit_profile(request, slug):
                 # delete old image if changed
                 try:
                     new_image=request.FILES['profile_image']
-                    if current_image!=new_image:
+                    # if image has changed and old is not the default image then delete the old image
+                    if current_image!=new_image and current_image!="default/default.jpeg":
                         delete_image(current_image)
                 except MultiValueDictKeyError:
                     print("Image isnt changing")
                 # save new profile
                 profile = form.save()
-                print("FILES: ", request.POST)
                 # if image changed send url back so image can be updated on the page
                 if request.POST.get('image_change', False):
                     return JsonResponse({"image_url":profile.profile_image.url})
@@ -310,7 +309,6 @@ def delete_image(location):
     path='upload/images/'+location
     
     if os.path.isfile(path):
-        print("Found the file")
         os.remove(path)
 
 def logout_view(request):
@@ -347,8 +345,10 @@ def coffee_form(request, id=None):
                     
                     # # delete old image
                     original_image = coffee['image']
-                    original_file_path=original_image.replace('/media', 'upload')
-                    os.remove(original_file_path)
+                    # check to make sure we are not deleting the default image
+                    if original_image!="/media/default/default-coffee.jpeg":
+                        original_file_path=original_image.replace('/media', 'upload')
+                        os.remove(original_file_path)
                 coffee_collection.update_one(coffee, {"$set":cleaned_dict})
                 return HttpResponseRedirect(reverse('coffee', args=[coffee['slug']]))
             else:

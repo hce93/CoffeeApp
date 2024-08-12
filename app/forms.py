@@ -70,7 +70,7 @@ class CoffeeForm(forms.Form):
     producer = forms.CharField(max_length=200, required=False)
     process=forms.CharField(max_length=100, required=False)
     variety=forms.CharField(max_length=100, required=False)
-    masl=forms.IntegerField(required=False)
+    altitude=forms.IntegerField(required=False)
     description=forms.CharField(required=False)
     roaster_flavour_notes=forms.CharField(required=False)
     image = forms.ImageField(required=False)
