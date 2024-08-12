@@ -889,8 +889,10 @@ textarea{
     align-self: center;
     align-items: center;
     min-width: 590px;
-    margin:20px 0
+    margin:20px 0;
+    max-width: 900px;
 }
+
 #coffee-form-input-div, #diary-form-input-div{
     width:80%
 }
@@ -1205,6 +1207,7 @@ textarea{
     width: fit-content;
     align-self: center;
 }
+
 @media (max-width:1150px){
     #diary-entry{
         flex-direction: column;

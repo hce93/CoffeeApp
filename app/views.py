@@ -364,6 +364,8 @@ def coffee_form(request, id=None):
             form = CoffeeForm(request.POST, request.FILES)
             if form.is_valid():
                 form.save()
+                # generate new form to pass to page so user can continue adding coffee
+                form = CoffeeForm()
             else:
                 context = {
                     "form":form
