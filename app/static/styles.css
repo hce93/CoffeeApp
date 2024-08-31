@@ -369,7 +369,7 @@ p, a{
 
 .coffee-link>img{
     height:150px;
-    width: fit-content; 
+    /* width: fit-content;  */
     border-radius: 100px;
 }
 
@@ -478,7 +478,7 @@ p, a{
     width:50vw
 }
 .coffee-image{
-    /* width:50%; */
+    width:50%;
     align-content: center;
     text-align: center;
 }
